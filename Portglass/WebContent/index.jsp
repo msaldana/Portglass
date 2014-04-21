@@ -78,7 +78,7 @@
 			
 	
 		 <div class="grid col-one-half mq2-col-full">
-		   <form id="" class="" action="" method="post" name="./authenticate">	
+		   <form id="login_form" class="login_form" name="login_form">	
 				<ul>
 					<li>
 						<label for="email">Username:</label>
@@ -136,6 +136,8 @@
 
 <script src="js/jquery.flexslider-min.js"></script>
 <script src="js/scripts.js"></script>
+<script src="js/jquery.validate.min.js"></script>
+<script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/pbkdf2.js"></script>
 
 
 </body>

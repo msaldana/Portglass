@@ -2,7 +2,7 @@ package com.dhs.portglass.servlets;
 
 import java.io.IOException;
 
-import javax.servlet.RequestDispatcher;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -60,8 +60,8 @@ public class RegisterServlet extends HttpServlet {
 			Account account = new Account (request.getParameter("name"), 
 					request.getParameter("last_name"), request.getParameter("email"), 
 					request.getParameter("password"), 
-					request.getParameter("phone"), request.getParameter("type_select"), 
-					false, request.getParameter("salt"));
+					request.getParameter("phone"), false,request.getParameter("type_select"), 
+					request.getParameter("salt"));
 			
 			//Try to add Account to DB 
 			if(AccountManager.getInstance().addAccount(account))

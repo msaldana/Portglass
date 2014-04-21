@@ -94,8 +94,36 @@ $(document).ready(function() {
 
 
 
-
-		$("#pass_form").validate();
+		// Login form Validator
+	
+		$("#login_form").validate({
+			
+			submitHandler: function(form) {
+				//Retrieve Salt for user
+				var salt;
+				$.post("./userSalt",
+						  {
+							email: $('#email').val(),
+				
+						  },
+						  function(data,status)
+						  {
+						    //Post success
+						    	salt = data.responseText;
+						    	alert(salt);
+						  }
+						  ).fail(function(err, status)
+								  {
+							   // something went wrong, go to error servlet
+							  //window.location.href = "./success.jsp";
+						  }
+						  );
+			},
+			
+			
+			
+			
+		});
 
 		$("#register_form").validate({
 			rules: {

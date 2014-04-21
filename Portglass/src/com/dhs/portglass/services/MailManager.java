@@ -239,7 +239,7 @@ public class MailManager
 		// Include username
 		body.append("Username: "+user.getEmail());
 		// Rest of HTML
-		body.append("</a></td></tr><tr><td align=\"center\" style=\"padding:10px 0px 10px 30px;\"></td></tr></table></td></tr></table></td></tr><tr><td bgcolor=\"#FFFFFF\" style=\"padding: 30px 30px 30px 30px;\"><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td width=\"40%\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">This notification was sent because you are an administrator at Portglass.<br></br>Developed by msaldana</a></td><td align=\"right\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">Research and Development Center<br>PO Box 9000<br>MayagŸez PR 00681-9000  <br>Tel. (919) 824-6309</a> </td></tr></table></td></tr></table></td></tr></table></body>" +
+		body.append("</a></td></tr><tr><td align=\"center\" style=\"padding:10px 0px 10px 30px;\"></td></tr></table></td></tr></table></td></tr><tr><td bgcolor=\"#FFFFFF\" style=\"padding: 30px 30px 30px 30px;\"><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td width=\"40%\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">This notification was sent because you are an administrator at Portglass.<br></br>Developed by msaldana</a></td><td align=\"right\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">Research and Development Center<br>PO Box 9000<br>MayagÃ¼ez PR 00681-9000  <br>Tel. (919) 824-6309</a> </td></tr></table></td></tr></table></td></tr></table></body>" +
 				"</html>");
 
 		// Map Application Images to HTML document.
@@ -249,11 +249,12 @@ public class MailManager
 		inlineImages.put("image3", imageDir+"email.png");
 
 
-		ArrayList<Account> admins = AccountManager.getInstance().getAdministratorList();
+		ArrayList<Object> admins = AccountManager.getInstance().getAdministratorList();
 		// Send e-mail to all administrators
 		for (int i= 0; i<admins.size(); i++)
 		{
-			MailManager.getInstance().send(admins.get(i).getEmail(), "New Account Request - Username: " +
+			MailManager.getInstance().send(((Account) admins.get(i)).getEmail(),
+					"New Account Request - Username: " +
 					user.getEmail(), body.toString(), inlineImages);
 		}
 	}
@@ -308,7 +309,7 @@ public class MailManager
 		// Include user's password
 		body.append("Password: "+user.getPassword());
 		// Rest of HTML
-		body.append("</a></td></tr><tr><td align=\"center\" style=\"padding:10px 0px 10px 30px;\"></td></tr></table></td></tr></table></td></tr><tr><td bgcolor=\"#FFFFFF\" style=\"padding: 30px 30px 30px 30px;\"><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td width=\"40%\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">This notification was sent because you requested registration at Portglass.<br></br>Developed by msaldana</a></td><td align=\"right\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">Research and Development Center<br>PO Box 9000<br>MayagŸez PR 00681-9000  <br>Tel. (919) 824-6309</a> </td></tr></table></td></tr></table></td></tr></table></body>" +
+		body.append("</a></td></tr><tr><td align=\"center\" style=\"padding:10px 0px 10px 30px;\"></td></tr></table></td></tr></table></td></tr><tr><td bgcolor=\"#FFFFFF\" style=\"padding: 30px 30px 30px 30px;\"><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td width=\"40%\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">This notification was sent because you requested registration at Portglass.<br></br>Developed by msaldana</a></td><td align=\"right\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">Research and Development Center<br>PO Box 9000<br>Mayagï¿½ez PR 00681-9000  <br>Tel. (919) 824-6309</a> </td></tr></table></td></tr></table></td></tr></table></body>" +
 				"</html>");
 
 		// Map Application Images to HTML document.
@@ -353,7 +354,7 @@ public class MailManager
 		// Include recovery link
 		body.append("Link to reset password: <a href=\""+url+"\"> Reset Pass Now! </a>");
 		// Rest of HTML
-		body.append("</a></td></tr><tr><td align=\"center\" style=\"padding:10px 0px 10px 30px;\"></td></tr></table></td></tr></table></td></tr><tr><td bgcolor=\"#FFFFFF\" style=\"padding: 30px 30px 30px 30px;\"><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td width=\"40%\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">This notification was sent because you requested registration at Portglass.<br></br>Developed by msaldana</a></td><td align=\"right\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">Research and Development Center<br>PO Box 9000<br>MayagŸez PR 00681-9000  <br>Tel. (919) 824-6309</a> </td></tr></table></td></tr></table></td></tr></table></body>" +
+		body.append("</a></td></tr><tr><td align=\"center\" style=\"padding:10px 0px 10px 30px;\"></td></tr></table></td></tr></table></td></tr><tr><td bgcolor=\"#FFFFFF\" style=\"padding: 30px 30px 30px 30px;\"><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td width=\"40%\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">This notification was sent because you requested registration at Portglass.<br></br>Developed by msaldana</a></td><td align=\"right\"><a style=\"font-family:arial,helvetica,sans-serif; font-size: 10px;\">Research and Development Center<br>PO Box 9000<br>Mayagï¿½ez PR 00681-9000  <br>Tel. (919) 824-6309</a> </td></tr></table></td></tr></table></td></tr></table></body>" +
 				"</html>");
 
 		// Map Application Images to HTML document.

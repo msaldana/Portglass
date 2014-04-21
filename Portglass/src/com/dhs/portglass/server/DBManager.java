@@ -18,7 +18,8 @@ import static java.util.logging.Level.SEVERE;
  * is made.
  *
  */
-public class DBConnector {
+public class DBManager {
+	
 	
 	// Initializes the Connection object that will be utilized to access the database.
     private static Connection connect = null;
@@ -28,7 +29,7 @@ public class DBConnector {
      * Properties are defined in ServerListener.java.
      */
    
-    private static final Logger logger = Logger.getLogger(DBConnector.class.getName());
+    private static final Logger logger = Logger.getLogger(DBManager.class.getName());
     
     /*
      * The following parameters represent the database credentials required 
@@ -43,18 +44,7 @@ public class DBConnector {
     private static String url = "jdbc:postgresql://portglassdb.c3vxmpfh5kyd.us-" +
     		"west-2.rds.amazonaws.com:5432/PortglassDB";
     		//ServerListener.getDBURL(); 
-    //Change this for changing databases
-    public static DBVersion DB_VERSION = DBVersion.POSTGRESQL;
-    
-    /**
-     * Serves to depict the desired version of the database.
-     */
-    public static enum DBVersion
-    {
-    	SQL_SERVER,
-    	MYSQL,
-    	POSTGRESQL
-    }
+   
     
     /**
      * Starts a connection to the configured database.
@@ -62,7 +52,7 @@ public class DBConnector {
      * @throws ClassNotFoundException
      * @throws SQLException
      */
-    public static Connection startConnection() throws ClassNotFoundException, SQLException 
+    private static Connection startConnection() throws ClassNotFoundException, SQLException 
     {	
         if(connect == null) 
         {         	
@@ -95,7 +85,7 @@ public class DBConnector {
     /**
      * @return Returns the connection made with the configured database.
      */
-    public static Connection getConnection()
+    private static Connection getConnection()
     {
         return connect;
     }
@@ -103,7 +93,7 @@ public class DBConnector {
     /**
      * Terminates an established connection.
      */
-    public static void endConnection()
+    private static void endConnection()
     {
 		try {
 			if(connect != null)
@@ -123,25 +113,80 @@ public class DBConnector {
 		}	
     }
     
-    public static ResultSet execute(String query) throws SQLException
+    /**
+     * Executes an update query on the database with the given query
+     * and query statements. Used for queries that either INSERT,
+     * UPDATE, or DELETE entries. Returns a boolean stating if the
+     * query was accepted by the database.
+     * @param query String version of query to the database.
+     * @param expressions Replaces attributes that where dimmed with '?'
+     * on the provided query String.
+     * @return A boolean stating if the query was processed by the 
+     * database.
+     * @throws SQLException Thrown by any error during query execution.
+     * @throws ClassNotFoundException 
+     */
+    public static boolean update(String query, Object[] expressions) 
+    		
     {
+    	boolean processed = false;
     	
-    	PreparedStatement stmt;
-    	ResultSet rs = null;
 		try {
-			connect = DBConnector.newConnection();
-			stmt = connect.prepareStatement(query);
-			rs = stmt.executeQuery();
+			
+			startConnection();
+			PreparedStatement statement = getConnection().prepareStatement(query);
+	    	for(int i=0; i<expressions.length; i++)
+	    	{
+	    		statement.setObject(i+1, expressions[i]);
+	    	}
+	    	statement.executeUpdate();
+	    	processed=true;
+		} catch (ClassNotFoundException e) {
+			logger.log(SEVERE, e.getMessage());
+		} catch (SQLException e) {
+			logger.log(SEVERE, e.getMessage());
+		}
+		finally{
+			endConnection();
+		}
+    	return processed;
+    	
+    }
+    
+    /**
+     * Executes a query on the database with the given expressions.
+     * Used for queries that retrieve data in the form of ResultSet
+     * objects. If an error occurs the method returns null.
+     * @param query Query to be executed
+     * @param expressions values for parameters in the provided query.
+     * @return ResultSet on successful query execution, null otherwise.
+     */
+    public static ResultSet execute(String query, Object[] expressions) 
+    {
+    	ResultSet result = null;
+ 
+		try {
+			startConnection();
+			PreparedStatement statement = getConnection().prepareStatement(query);
+			for(int i=0; i<expressions.length; i++)
+	    	{
+	    		statement.setObject(i+1, expressions[i]);
+	    	}
+			
+			result = statement.executeQuery();
+			
 		} catch (SQLException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		finally{
-			connect.close();
+			endConnection();
 		}
-		return rs;
+    	return result;
     }
     
+    
+
 }
     
 

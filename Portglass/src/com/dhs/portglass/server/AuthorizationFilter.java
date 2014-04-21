@@ -11,8 +11,6 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.dhs.portglass.dto.Account;
 import com.dhs.portglass.security.AuthorizationManager;
@@ -97,13 +95,9 @@ public class AuthorizationFilter implements Filter
 			//Get requested URI
 			String URI = ((HttpServletRequest)request).getRequestURI();
 			
-			//Obtain AuthorizationManager singleton using ApplicationContext.
-			ApplicationContext appContext = WebApplicationContextUtils.getWebApplicationContext(
-					session.getServletContext());
-			AuthorizationManager authorization = (AuthorizationManager) appContext
-					.getBean("AuthorizationManager");
-			
-			boolean authorized = authorization.isAuthorized(currentUser, URI);
+			//See if user is authorized
+			boolean authorized = AuthorizationManager.getInstance().isAuthorized
+					(currentUser, URI);
 			if (authorized) 
 			{
 				chain.doFilter(request,response);

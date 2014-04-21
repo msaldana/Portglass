@@ -12,12 +12,6 @@
     <location>/error.jsp</location>
   </error-page>
   
-  <!--Listener that loads Spring's /WEB-INF/applicationContext.xml
-    file.-->
-	<listener>
-    <listener-class>org.springframework.web.context.
-                    ContextLoaderListener</listener-class>
-	</listener>
   
   <context-param>
     <description>This is the data base driver name</description>

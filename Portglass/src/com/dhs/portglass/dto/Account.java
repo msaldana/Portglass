@@ -16,7 +16,7 @@ public class Account {
 	private String password;
 	private String phone;
 	private String type;
-	private boolean isApproved;
+	private boolean isActive;
 	private String salt;
 	
 	/**
@@ -27,7 +27,7 @@ public class Account {
 	}
 	
 	public Account(String firstName, String lastName, String email, 
-			String password, String phone, String type, boolean isApproved,
+			String password, String phone,  boolean isActive, String type,
 			String salt)
 	{
 		this.firstName = firstName;
@@ -35,8 +35,8 @@ public class Account {
 		this.email = email;
 		this.password = password;
 		this.phone = phone;
+		this.isActive = isActive;
 		this.type = type;
-		this.isApproved = isApproved;
 		this.salt = salt;
 	}
 	
@@ -72,8 +72,8 @@ public class Account {
 		this.type = type;
 	}
 
-	public void setApproved(boolean isApproved) {
-		this.isApproved = isApproved;
+	public void setActiveStatus(boolean isActive) {
+		this.isActive = isActive;
 	}
 	
 	public void setSalt(String salt){
@@ -112,8 +112,8 @@ public class Account {
 		return type;
 	}
 
-	public boolean isApproved() {
-		return isApproved;
+	public boolean isActive() {
+		return isActive;
 	}
 
 	public String getSalt() {

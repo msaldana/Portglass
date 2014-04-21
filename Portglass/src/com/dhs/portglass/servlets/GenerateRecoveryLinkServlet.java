@@ -64,14 +64,7 @@ public class GenerateRecoveryLinkServlet extends HttpServlet {
 			//Create a new Account Recovery Link
 			String email = request.getParameter("email");
 			String url;
-			try {
-				url = AccountManager.getInstance().generateRecoveryLink(email);
-			} catch (NoSuchAlgorithmException e) {
-				
-				//Manage error
-				url = ServerListener.getDeploymentURL()+"/error";
-				e.printStackTrace();
-			}
+			url = AccountManager.getInstance().generateRecoveryLink(email);
 			
 			//Send Email 
 			ThreadPoolController.getInstance().getThreadPoolExecutor().execute(
