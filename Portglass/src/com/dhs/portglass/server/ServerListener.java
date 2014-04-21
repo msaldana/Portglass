@@ -31,6 +31,7 @@ public class ServerListener implements ServletContextListener
 	private static String NOREPLY_EMAIL;
 	private static String IMG_DIR;
 	private static String DATA_DIR;
+	private static String INDEX_URL;
 	private static Logger logger = 
 			Logger.getLogger(ServerListener.class.getName());
 	
@@ -52,6 +53,7 @@ public class ServerListener implements ServletContextListener
 		
 		IMG_DIR = event.getServletContext().getRealPath("/img/");
 		DATA_DIR = event.getServletContext().getRealPath("/WEB-INF/data/");
+		INDEX_URL = event.getServletContext().getInitParameter("appliation.url");
 		
 	}
 	
@@ -129,6 +131,15 @@ public class ServerListener implements ServletContextListener
 	public static String getDataDirectory()
 	{
 		return DATA_DIR;
+	}
+	
+	/**
+	 * Makes the application index URL available from within project classes
+	 * the moment the server is powered on.
+	 */
+	public static String getDeploymentURL()
+	{
+		return INDEX_URL;
 	}
 	
 	/**

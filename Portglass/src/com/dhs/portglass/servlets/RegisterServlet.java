@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.dhs.portglass.dto.Account;
-import com.dhs.portglass.security.PasswordManager;
 import com.dhs.portglass.services.AccountManager;
 import com.dhs.portglass.services.MailManager;
 import com.dhs.portglass.util.ThreadPoolController;
@@ -49,41 +48,20 @@ public class RegisterServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException 
 	{
-		String forwardURL = "./Error.jsp";
 		
 		if(nullChecker(request.getParameter("name")))
 		{
 			
 		}
-		else if(nullChecker(request.getParameter("last_name")))
-		{
-			
-		}
-		else if(nullChecker(request.getParameter("phone")))
-		{
-			
-		}
-		else if(nullChecker(request.getParameter("email")))
-		{
-			
-		}
-		else if(nullChecker(request.getParameter("password")))
-		{
-			
-		}
-		else if(nullChecker(request.getParameter("type_select")))
-		{
-			
-		}
-		
+				
 		else
 		{
 			//Create Account Object with given data
 			Account account = new Account (request.getParameter("name"), 
 					request.getParameter("last_name"), request.getParameter("email"), 
-					PasswordManager.encrypt(request.getParameter("password")), 
+					request.getParameter("password"), 
 					request.getParameter("phone"), request.getParameter("type_select"), 
-					false);
+					false, request.getParameter("salt"));
 			
 			//Try to add Account to DB 
 			if(AccountManager.getInstance().addAccount(account))
@@ -93,11 +71,6 @@ public class RegisterServlet extends HttpServlet {
 				ThreadPoolController.getInstance().getThreadPoolExecutor().execute(
 						MailManager.getInstance().sendAsyncNewAccountEmail(account));
 				
-				
-				//Forward User to Success Page
-				forwardURL = "./success.jsp";
-				RequestDispatcher dispatcher = request.getRequestDispatcher(forwardURL);
-				dispatcher.forward(request, response);
 			}
 			else
 			{

@@ -1,5 +1,6 @@
 package com.dhs.portglass.services;
 
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,7 +29,7 @@ public class AccountManager
 
 	//Queries to create data in database
 	private static final String ADD_ACCOUNT = "INSERT INTO account(firstname, lastname, " +
-			"email, password, phone, isactive, type) VALUES (?, ?, ?, ?, ?, ?, ?)";
+			"email, password, phone, isactive, type, salt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 	
 	private static final String ADD_RECOVERY_LINK_UPDATE = "UPDATE recover SET date_added=?, " +
 			" key=? WHERE account_id=?";
@@ -39,8 +40,8 @@ public class AccountManager
 	
 	
 	//Queries to update data in database
-	private static final String UPDATE_PASSWORD_THRU_LINK = "UPDATE account SET password = ? " +
-			"FROM recover WHERE email = account_id AND key=?";
+	private static final String UPDATE_PASSWORD_THRU_LINK = "UPDATE account SET password = ?, " +
+			" salt = ? FROM recover WHERE email = account_id AND key=?";
 			
 	//Queries to delete data in database
 	private static final String DELETE_RECOVERY_LINK = "DELETE FROM recover where key " +
@@ -96,6 +97,7 @@ public class AccountManager
 			stmt.setString(5, account.getPhone());
 			stmt.setBoolean(6, account.isApproved());
 			stmt.setString(7, account.getType());
+			stmt.setString(8,  account.getSalt());
 			
 			
 
@@ -264,12 +266,13 @@ public class AccountManager
 	
 	
 	
-	public String generateRecoveryLink(String email) {		
+	public String generateRecoveryLink(String email) throws NoSuchAlgorithmException {		
 		
 		Connection connection = null;
 		long currentTime = System.currentTimeMillis();
 		//Generate a key for the password reset, to be sent via email.
-		String key= PasswordManager.encrypt(email+currentTime);
+		String key= PasswordManager.encryptSHA256(email+currentTime, 
+				PasswordManager.generateSalt());
 		try{
 			connection = DBConnector.newConnection();
 			
@@ -302,17 +305,20 @@ public class AccountManager
 	}
 	
 	
-	public boolean updatePasswordThroughLink(String key, String password) {		
+	public boolean updatePasswordThroughLink(String key, String password, String salt) {		
 		Connection connection = null;
 		int status;
-		
+		System.out.println("key: "+key);
+		System.out.println("pass: "+password);
+		System.out.println("salt: "+salt);
 		try{
 			connection = DBConnector.newConnection();
 			connection.setAutoCommit(false);
 
 			PreparedStatement stmt = connection.prepareStatement(UPDATE_PASSWORD_THRU_LINK);
 			stmt.setString(1, password);
-			stmt.setString(2, key);
+			stmt.setString(2, salt);
+			stmt.setString(3, key);
 			
 			status = stmt.executeUpdate();
 			
@@ -427,10 +433,11 @@ public class AccountManager
 		account.setPhone(rs.getString(5));
 		account.setApproved(rs.getBoolean(6));
 		account.setType(rs.getString(7).trim());
+		account.setSalt(rs.getString(8).trim());
 	}
 	
 	public static void main(String[] args){
-		System.out.println(AccountManager.getInstance().updatePasswordThroughLink("D", "lentejas"));
+		
 		
 	}
 	

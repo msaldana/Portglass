@@ -96,8 +96,7 @@
 			will no longer work. This link is also invalid after 24 hours from the time of the 
 			initial request.</p>
 			
-			<form id="recover_form" class="recover_form" action="././passChange?key=<%=request.getAttribute("key")%>"
-			 method="post" name="recover_form">	
+			<form id="recover_form" class="recover_form"  name="recover_form">	
 				<ul>
 					
 					<li>
@@ -107,13 +106,14 @@
 					
 					<li>
 						<label for="password_again">Confirm Password:</label>
-						<input type="password" name="confirmPass" id="password_again"  minlength="6"  
+						<input type="password" name="password_again" id="password_again"  minlength="6"  
 							equalTo="#password" required>
 					</li>	
 					
 					
 					
 					<li>
+						<input type="hidden" name="key" id="key" value="<%=request.getAttribute("key") %>" />
 						<button type="submit" id="submit" name="submit" class="button fright">Submit</button>
 					</li>	
 				</ul>			
@@ -155,6 +155,7 @@
 
 <script src="./js/scripts.js"></script>
 <script src="./js/jquery.validate.min.js"></script>
+<script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/pbkdf2.js"></script>
 
 
 </body>

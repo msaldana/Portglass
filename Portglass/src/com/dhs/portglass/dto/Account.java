@@ -17,6 +17,7 @@ public class Account {
 	private String phone;
 	private String type;
 	private boolean isApproved;
+	private String salt;
 	
 	/**
 	 * Default Constructor
@@ -26,7 +27,8 @@ public class Account {
 	}
 	
 	public Account(String firstName, String lastName, String email, 
-			String password, String phone, String type, boolean isApproved)
+			String password, String phone, String type, boolean isApproved,
+			String salt)
 	{
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -35,6 +37,7 @@ public class Account {
 		this.phone = phone;
 		this.type = type;
 		this.isApproved = isApproved;
+		this.salt = salt;
 	}
 	
 	
@@ -71,6 +74,10 @@ public class Account {
 
 	public void setApproved(boolean isApproved) {
 		this.isApproved = isApproved;
+	}
+	
+	public void setSalt(String salt){
+		this.salt = salt;
 	}
 
 	
@@ -109,7 +116,9 @@ public class Account {
 		return isApproved;
 	}
 
-	
+	public String getSalt() {
+		return salt;
+	}
 	
 	
 	

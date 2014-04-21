@@ -11,6 +11,14 @@
     <error-code>404</error-code>
     <location>/error.jsp</location>
   </error-page>
+  
+  <!--Listener that loads Spring's /WEB-INF/applicationContext.xml
+    file.-->
+	<listener>
+    <listener-class>org.springframework.web.context.
+                    ContextLoaderListener</listener-class>
+	</listener>
+  
   <context-param>
     <description>This is the data base driver name</description>
     <param-name>db.driver</param-name>
@@ -32,12 +40,9 @@
     <param-value>jdbc:postgresql://portglassdb.c3vxmpfh5kyd.us-west-2.rds.amazonaws.com:5432</param-value>
   </context-param>
   <context-param>
-    <description>Properties for the LogManager.</description>
-    <param-name>LogManager.properties</param-name>
-    <param-value>
-  		java.util.logging.FileHandler.pattern= /var/opt/jboss-as/standalone/deployments/Redirect/WEB-INF/logs/RedirectServlet%g.log,
-  		java.util.logging.FileHandler.formatter=java.util.logging.SimpleFormatter
-  	</param-value>
+    <description>This application index url</description>
+    <param-name>db.url</param-name>
+    <param-value>http://localhost:8080/Portglass</param-value>
   </context-param>
   <context-param>
     <description>NoReply Email for message delivery</description>

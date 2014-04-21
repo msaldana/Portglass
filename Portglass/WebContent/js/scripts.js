@@ -94,10 +94,9 @@ $(document).ready(function() {
 
 
 
-//	Register form validation 	
-	if (jQuery().validate) {
+
 		$("#pass_form").validate();
-		
+
 		$("#register_form").validate({
 			rules: {
 				email: {
@@ -118,14 +117,51 @@ $(document).ready(function() {
 					required: "This field is required",
 					email: "Please enter a valid email address",
 					remote: jQuery.format("{0} is already taken")
-				},
+				}
+			},
 
-				submitHandler: function() { },
+			submitHandler: function(form) {
+				//Retrieve Password
+				var pass = $('#password');
+				//Generate Salt
+				var salt = CryptoJS.lib.WordArray.random(128/8);
 
 				
+				//Provide Salt Post
+				$('#salt').val(salt);
+				//Encrypt Password Field
+				var encryptedPass = ( CryptoJS.PBKDF2(pass.val(), salt, 
+						{ keySize: 512/32, iterations: 1000 }));
+				
+				//Reset Password-Again Field
+				$('#password').val("");
+				$('#password_again').val("");
+				
+				$.post("./register",
+						  {
+							name: $('#name').val(),
+						    last_name: $('#last_name').val(),
+						    phone: $('#phone').val(),
+						    email: $('#email').val(),
+						    type_select: $('#type_select').val(),
+						    password: encryptedPass+"",
+						    salt: salt+""
+						  },
+						  function(data,status)
+						  {
+						    //Post success
+						    	window.location.href = "./success.jsp";
+						  }
+						  ).fail(function(err, status)
+								  {
+							   // something went wrong, check err and status
+						  }
+						  );
 			},
+
 		});
 
+		//Validation form for Recovery Page
 		$("#recover_form").validate({
 			rules: {
 				email: {
@@ -146,17 +182,46 @@ $(document).ready(function() {
 					required: "This field is required",
 					email: "Please enter a valid email address",
 					remote: jQuery.format("{0} is not registered.")
-				},
+				}
+			},
 
-				submitHandler: function() { },
+			submitHandler: function(form) {
+				//Retrieve Password
+				var pass = $('#password');
+				//Generate Salt
+				var salt = CryptoJS.lib.WordArray.random(128/8);
 
+				//Encrypt Password Field
+				var encryptedPass = ( CryptoJS.PBKDF2(pass.val(), salt, 
+						{ keySize: 512/32, iterations: 1000 }));
+				
+				//Reset Password-Again Field
+				$('#password').val("");
+				$('#password_again').val("");
+				
+				
+				$.post("././passChange",
+						  {
+						    password: encryptedPass+"",
+						    salt: salt+"",
+						    key: $('#key').val()
+						  },
+						  function(data,status)
+						  {
+						    //Post success
+							  window.location.href = "./success.jsp";
+						    	
+						  }
+						  ).fail(function(err, status)
+								  {
+							   // something went wrong, check err and status
+						  }
+						  );
 
 			},
 
 		});
-
-
-	};   
+	  
 
 
 

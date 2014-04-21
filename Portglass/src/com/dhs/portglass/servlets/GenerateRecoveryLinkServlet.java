@@ -1,6 +1,7 @@
 package com.dhs.portglass.servlets;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -10,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
+import com.dhs.portglass.server.ServerListener;
 import com.dhs.portglass.services.AccountManager;
 import com.dhs.portglass.services.MailManager;
 import com.dhs.portglass.util.ThreadPoolController;
@@ -47,7 +49,6 @@ public class GenerateRecoveryLinkServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException 
 			{
-		System.out.println("Entro");
 		//Initially set to Error page.
 		String forwardURL = "./error.jsp";
 
@@ -62,10 +63,16 @@ public class GenerateRecoveryLinkServlet extends HttpServlet {
 		{
 			//Create a new Account Recovery Link
 			String email = request.getParameter("email");
-			String url = AccountManager.getInstance().generateRecoveryLink(email);
-
-
-
+			String url;
+			try {
+				url = AccountManager.getInstance().generateRecoveryLink(email);
+			} catch (NoSuchAlgorithmException e) {
+				
+				//Manage error
+				url = ServerListener.getDeploymentURL()+"/error";
+				e.printStackTrace();
+			}
+			
 			//Send Email 
 			ThreadPoolController.getInstance().getThreadPoolExecutor().execute(
 					MailManager.getInstance().sendAsyncPasswordRecoveryEmail(email, url));
