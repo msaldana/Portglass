@@ -390,7 +390,7 @@ public class AccountManager
 		ResultSet rs = DBManager.execute(GET_USER_SALT, expressions.toArray());
 		try {
 			if(rs.next() && rs.isFirst() && rs.isLast()){				
-				result = result+rs.getString(1).trim();
+				result = rs.getString(1).trim();
 			}
 		} catch (Exception e ) {
 			e.printStackTrace();

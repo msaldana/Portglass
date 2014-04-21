@@ -82,13 +82,21 @@
 				<ul>
 					<li>
 						<label for="email">Username:</label>
-						<input type="email" name="email" id="email" required email placeholder="user@email.com" >
+						<input type="email" name="email" id="email" class="required email" placeholder="user@email.com" >
+						
 					</li>	
 					
 					<li>
 						<label for="password">Password:</label>
-						<input type="password" name="password" id="password" minlength="6" required >
+						<input type="password" class="password" name="password" id="password"
+						 minlength="6" required >
+						<label id="load" class="load" style='display:none'>
+  							<img src='img/loader.gif'/> Attempting Login ...
+						</label>
+						<label id="error" class="error"></label>
+						
 					</li>	
+						
 						
 					
 					<li>

@@ -128,9 +128,9 @@ select {height: auto;}
 :-ms-input-placeholder {color: #BBB;}
 /* validate.js */
 label.error { color: #0078CF; margin: 0.5em 0 0 0.5em; font-weight: normal; font-style: italic; }
-input.error, select.error {
-      background: #FFC;
-}  
+label.load { color: #0078CF; margin: 0.5em 0 0 0.5em; font-weight: normal; font-style: italic; }
+input.error, select.error  { background: #FFC;}
+a.error { color: #FF9494;}
 
 /* -- BUTTONS 
 ------------------------------------------------------------- */

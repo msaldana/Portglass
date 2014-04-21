@@ -101,6 +101,9 @@
 					<li>
 						<label for="email">Email:</label>
 						<input type="email" name="email" id="email" required placeholder="user@email.com" class="required email">
+						<label id="load" class="load" style='display:none'>
+  							<img src='img/loader.gif'/> Checking Provided Email ...
+						</label>
 					</li>	
 					
 					

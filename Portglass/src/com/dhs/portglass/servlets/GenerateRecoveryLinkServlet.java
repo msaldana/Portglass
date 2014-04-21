@@ -1,8 +1,6 @@
 package com.dhs.portglass.servlets;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -10,8 +8,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
-import com.dhs.portglass.server.ServerListener;
 import com.dhs.portglass.services.AccountManager;
 import com.dhs.portglass.services.MailManager;
 import com.dhs.portglass.util.ThreadPoolController;
@@ -79,8 +75,6 @@ public class GenerateRecoveryLinkServlet extends HttpServlet {
 		}
 
 			}
-
-
 
 	/**
 	 * Verifies if the ID parameter is not defined. It returns a boolean which will be

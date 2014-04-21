@@ -70,7 +70,7 @@ $(document).ready(function() {
 //	PORTFOLIO sorting	
 	// NAV 
 	$('.works-page aside menu a').click(function(){
-		$(this).addClass("buttonactive").siblings().removeClass("buttonactive")
+		$(this).addClass("buttonactive").siblings().removeClass("buttonactive");
 	});
 	// SELECTION
 	$("#work_1").click(function() {
@@ -94,162 +94,215 @@ $(document).ready(function() {
 
 
 
-		// Login form Validator
-	
-		$("#login_form").validate({
-			
-			submitHandler: function(form) {
-				//Retrieve Salt for user
-				var salt;
-				$.post("./userSalt",
-						  {
-							email: $('#email').val(),
-				
-						  },
-						  function(data,status)
-						  {
-						    //Post success
-						    	salt = data.responseText;
-						    	alert(salt);
-						  }
-						  ).fail(function(err, status)
-								  {
-							   // something went wrong, go to error servlet
-							  //window.location.href = "./success.jsp";
-						  }
-						  );
-			},
-			
-			
-			
-			
-		});
+	// Login form Validator
 
-		$("#register_form").validate({
-			rules: {
-				email: {
-					remote: {
-						url: "./availability",
-						type: "post",
-						complete: function(data){
-							if( data.responseText == "true" ) {
+	$("#login_form").validate({
 
-							}
-						}
+		submitHandler: function(form) {
+			//Retrieve Salt for user
+			var salt;
+			//Hold Encrypted Password Value
+			var encryptedPass="";
+			//Hold email value
+			//Start Loading Message
+			$('#load').show();
+			//Boolean stating if salt was retrieved.
+			var isSaltRetrieved = false;
+			//Remove previous error messages.
+			$( "#errorMessage" ).remove();
+			$( "#errorMessageSolution" ).remove();
+
+			//Look for the user email's Salt.
+			$.post("./userSalt",
+					{
+				email: $('#email').val(),
+
 					},
+					function(data,status)
+					{
+						if ($.trim(data) != 'failure'){
+							salt = data+"";
+							
+							//Encrypt Password Field
+
+							encryptedPass = ( CryptoJS.PBKDF2($('#password').val(),
+									salt, { keySize: 512/32, iterations: 1000 }))+"";
+							isSaltRetrieved = true;
+						}
+						else{
+							$('#load').hide();
+							$('#error').append('<a id="errorMessage" class="error">The email address '+
+							'you entered is not registered.</a>');
+							$('#error').append('<a id="errorMessageSolution" href='+
+							'"./register.jsp">Register Now! </a>');
+							$('#error').show();
+
+						}
+
+					}
+			)//Execute .done when finished reading from Servlet
+			.always(function(){
+
+				// Attempt Login with Encrypted Pass if salt was retrieved
+				if(isSaltRetrieved)
+				{
+					$.post("./login",
+							{
+						email: $('#email').val(),
+						password: encryptedPass
+							}, 
+							function(data, status){
+								if ($.trim(data) == 'success'){
+									$('#load').hide();
+									alert('!!!');
+								}
+								if ($.trim(data) == 'failure'){
+									$('#load').hide();
+									$('#error').append('<a id="errorMessage" class="error">The credentials '+
+									'you entered are incorrect.</a>');
+									$('#error').append('<a id="errorMessageSolution" href='+
+									'"./recovery.jsp">Forgot Password? </a>');
+									$('#error').show();
+
+								}
+							});
+
+				}
+			});
+
+		},
+	});
+
+
+
+
+	//Validation for Account Registration Form
+	$("#register_form").validate({
+		rules: {
+			email: {
+				remote: {
+					onkeyup: false,
+					url: "./availability",
+					type: "post",
+					beforeSend : function(){
+
+						$('#load').show(); 
+					},
+
+					complete: function(data){
+						$('#load').hide();
+						if( data.responseText == "true" ) {
+
+						}
+					}
 				},
 			},
+		},
 
-			messages: {
-				email: {
-					required: "This field is required",
-					email: "Please enter a valid email address",
-					remote: jQuery.format("{0} is already taken")
-				}
-			},
+		messages: {
+			email: {
+				required: "This field is required",
+				email: "Please enter a valid email address",
+				remote: jQuery.format("{0} is already taken")
+			}
+		},
 
-			submitHandler: function(form) {
-				//Retrieve Password
-				var pass = $('#password');
-				//Generate Salt
-				var salt = CryptoJS.lib.WordArray.random(128/8);
+		submitHandler: function(form) {
+			//Retrieve Password
 
-				
-				//Provide Salt Post
-				$('#salt').val(salt);
-				//Encrypt Password Field
-				var encryptedPass = ( CryptoJS.PBKDF2(pass.val(), salt, 
-						{ keySize: 512/32, iterations: 1000 }));
-				
-				//Reset Password-Again Field
-				$('#password').val("");
-				$('#password_again').val("");
-				
-				$.post("./register",
-						  {
-							name: $('#name').val(),
-						    last_name: $('#last_name').val(),
-						    phone: $('#phone').val(),
-						    email: $('#email').val(),
-						    type_select: $('#type_select').val(),
-						    password: encryptedPass+"",
-						    salt: salt+""
-						  },
-						  function(data,status)
-						  {
-						    //Post success
-						    	window.location.href = "./success.jsp";
-						  }
-						  ).fail(function(err, status)
-								  {
-							   // something went wrong, check err and status
-						  }
-						  );
-			},
+			//Generate Salt
+			var salt = CryptoJS.lib.WordArray.random(128/8)+"";
 
-		});
+			//Encrypt Password Field
+			var encryptedPass = ( CryptoJS.PBKDF2($('#password').val(), salt, 
+					{ keySize: 512/32, iterations: 1000 }))+"";
 
-		//Validation form for Recovery Page
-		$("#recover_form").validate({
-			rules: {
-				email: {
-					remote: {
-						url: "./validateAccount",
-						type: "post",
-						complete: function(data){
-							if( data.responseText == "true" ) {
 
-							}
-						}
+			$.post("./register",
+					{
+				name: $('#name').val(),
+				last_name: $('#last_name').val(),
+				phone: $('#phone').val(),
+				email: $('#email').val(),
+				type_select: $('#type_select').val(),
+				password: encryptedPass,
+				salt: salt
 					},
+					function(data,status)
+					{
+						//Post success
+						window.location.href = "./success.jsp";
+					}
+			).fail(function(err, status)
+					{
+				// something went wrong, check err and status
+					}
+			);
+		},
+
+	});
+
+	//Validation form for Recovery Page
+	$("#recover_form").validate({
+		rules: {
+			email: {
+				remote: {
+					onkeyup: false,
+					url: "./validateAccount",
+					type: "post",
+					beforeSend : function(){
+
+						$('#load').show(); 
+					},
+					complete: function(data){
+						$('#load').hide();
+						
+					}
 				},
 			},
+		},
 
-			messages: {
-				email: {
-					required: "This field is required",
-					email: "Please enter a valid email address",
-					remote: jQuery.format("{0} is not registered.")
-				}
-			},
+		messages: {
+			email: {
+				required: "This field is required",
+				email: "Please enter a valid email address",
+				remote: jQuery.format("{0} is not registered.")
+			}
+		},
 
-			submitHandler: function(form) {
-				//Retrieve Password
-				var pass = $('#password');
-				//Generate Salt
-				var salt = CryptoJS.lib.WordArray.random(128/8);
+		submitHandler: function(form) {
+			//Retrieve Password
+			var pass = $('#password');
+			//Generate Salt
+			var salt = CryptoJS.lib.WordArray.random(128/8)+"";
 
-				//Encrypt Password Field
-				var encryptedPass = ( CryptoJS.PBKDF2(pass.val(), salt, 
-						{ keySize: 512/32, iterations: 1000 }));
-				
-				//Reset Password-Again Field
-				$('#password').val("");
-				$('#password_again').val("");
-				
-				
-				$.post("././passChange",
-						  {
-						    password: encryptedPass+"",
-						    salt: salt+"",
-						    key: $('#key').val()
-						  },
-						  function(data,status)
-						  {
-						    //Post success
-							  window.location.href = "./success.jsp";
-						    	
-						  }
-						  ).fail(function(err, status)
-								  {
-							   // something went wrong, check err and status
-						  }
-						  );
+			//Encrypt Password Field
+			var encryptedPass = ( CryptoJS.PBKDF2(pass.val(), salt, 
+					{ keySize: 512/32, iterations: 1000 }))+"";
 
-			},
 
-		});
-	  
+			$.post("././passChange",
+					{
+				password: encryptedPass,
+				salt: salt,
+				key: $('#key').val()
+					},
+					function(data,status)
+					{
+						//Post success
+						window.location.href = "./success.jsp";
+
+					}
+			).fail(function(err, status)
+					{
+				// something went wrong, check err and status
+					}
+			);
+
+		},
+
+	});
+
 
 
 

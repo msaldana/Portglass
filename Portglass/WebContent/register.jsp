@@ -119,7 +119,12 @@
 
 						<li><label for="email">Email:</label> <input type="email"
 							name="email" id="email" placeholder="user@email.com" 
-							 class="required email"></li>
+							 class="required email">
+							 <label id="load" class="load" style='display:none'>
+  							<img src='img/loader.gif'/> Checking Provided Email ...
+							</label>	 
+						</li>
+							 
 
 						<li><label for="password">Password:</label> <input
 							type="password" name="password" id="password" minlength="6"
