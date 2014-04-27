@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.dhs.portglass.services.AccountManager;
 import com.dhs.portglass.services.MailManager;
-import com.dhs.portglass.util.ThreadPoolController;
+import com.dhs.portglass.services.ThreadPoolManager;
 
 /**
  * Servlet implementation class recovery
@@ -63,7 +63,7 @@ public class GenerateRecoveryLinkServlet extends HttpServlet {
 			url = AccountManager.getInstance().generateRecoveryLink(email);
 			
 			//Send Email 
-			ThreadPoolController.getInstance().getThreadPoolExecutor().execute(
+			ThreadPoolManager.getInstance().getThreadPoolExecutor().execute(
 					MailManager.getInstance().sendAsyncPasswordRecoveryEmail(email, url));
 			
 

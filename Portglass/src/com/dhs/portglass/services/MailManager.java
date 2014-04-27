@@ -369,8 +369,7 @@ public class MailManager
 				"password", body.toString(), inlineImages);
 
 	}
-
-
+	
 
 	/**
 	 * Utility Class to Send New Account Emails Asynchronously.

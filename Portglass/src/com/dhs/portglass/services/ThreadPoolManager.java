@@ -1,4 +1,4 @@
-package com.dhs.portglass.util;
+package com.dhs.portglass.services;
 
 
 import java.util.concurrent.Executors;
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  * @author Manuel R Saldana
  *
  */
-public class ThreadPoolController 
+public class ThreadPoolManager 
 {
 	public static final int PROCESSORS =
 			Runtime.getRuntime().availableProcessors();
@@ -31,9 +31,9 @@ public class ThreadPoolController
 	private volatile ScheduledExecutorService scheduledExecutor;
 	
 	//Singleton instance of the ThreadPoolController
-	private static final ThreadPoolController singleton = new ThreadPoolController();
+	private static final ThreadPoolManager singleton = new ThreadPoolManager();
 	
-	private ThreadPoolController(){
+	private ThreadPoolManager(){
 		super();
 		threadPoolExecutor =
 				newThreadPoolExecutor(PROCESSORS+1, THREAD_TIMEOUT_SECONDS);
@@ -46,18 +46,29 @@ public class ThreadPoolController
 	 * Done to avoid other thread pools to be created.
 	 * @return
 	 */
-	public static ThreadPoolController getInstance(){
+	public static ThreadPoolManager getInstance(){
 		return singleton;
 	}
 	
 	/**
 	 * Returns the ThreadPoolExecutor object created by the ThreadPoolController.
-	 * This can be passed to other classes to realize tasks asynchronous tasks by 
+	 * This can be passed to other classes to realize asynchronous tasks by 
 	 * methods that implement Runnable.
 	 * @return
 	 */
 	public ThreadPoolExecutor getThreadPoolExecutor(){
 		return threadPoolExecutor;
+	}
+	
+	
+	/**
+	 * Returns a single thread for Scheduled events created by the ThreadPoolController.
+	 * This can be passed to other classes to realize asynchronous scheduled tasks by 
+	 * methods that implement Runnable.
+	 * @return
+	 */
+	public ScheduledExecutorService getScheduledExecutor(){
+		return scheduledExecutor;
 	}
 	
 	/**

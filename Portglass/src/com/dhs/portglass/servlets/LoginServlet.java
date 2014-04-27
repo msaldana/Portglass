@@ -1,7 +1,6 @@
 package com.dhs.portglass.servlets;
 
 import java.io.IOException;
-import java.util.Enumeration;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -46,9 +45,6 @@ public class LoginServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {
 		
-		System.out.println("login attempt");
-		System.out.println("user: "+ request.getParameter("email"));
-		System.out.println("password: "+ request.getParameter("password"));
 		
 		// Set content type of the response so that jQuery knows what it can expect.
 		response.setContentType("text/plain");   
@@ -71,7 +67,9 @@ public class LoginServlet extends HttpServlet {
 			{
 				
 				HttpSession session = request.getSession();
-				session.setAttribute("user", user);
+				session.setAttribute("authenticated", true);
+				session.setAttribute("user", request.getParameter("email"));
+				session.setAttribute("type", user.getType());
 				
 				// Write response body: SUCCESS.
 				response.getWriter().write("success");

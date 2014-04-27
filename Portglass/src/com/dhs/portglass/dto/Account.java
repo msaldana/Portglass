@@ -120,7 +120,15 @@ public class Account {
 		return salt;
 	}
 	
+	/*----------------------------------------------------------
+	 * Utility Methods
+	 *----------------------------------------------------------
+	 */
 	
+	public String toString(){
+		return "Name: "+ this.firstName+" Lastname: "+ this.lastName +" email: "+this.email+
+			   " Phone: "+this.phone+" Type: "+ this.type+" Active: "+this.isActive; 
+	}
 	
 
 }

@@ -1,6 +1,5 @@
 package com.dhs.portglass.services;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -28,11 +27,34 @@ public class AccountManager
 	 * Queries to retrieve account data from database
 	 ****************************************************/
 
+
 	/*
-	 * Retrieve account entry for the provided email address.
+	 * Retrieve all entries from the 'Account' database table whose 'name' 
+	 * column matches the provided value. 
 	 */
-	private static final String GET_ACCOUNT = "SELECT * FROM Account WHERE email = " +
+	private static final String GET_ACCOUNTS_BY_NAME = "SELECT * FROM Account WHERE firstname = " +
 			"?";
+	/*
+	 * Retrieve all entries from the 'Account' database table whose 'lastname' 
+	 * column matches the provided value. 
+	 */
+	private static final String GET_ACCOUNTS_BY_LAST_NAME = "SELECT * FROM Account WHERE" +
+			" lastname = ?";
+	
+	/*
+	 * Retrieve all entries from the 'Account' database table whose 'email' 
+	 * column matches the provided value. 
+	 */
+	private static final String GET_ACCOUNTS_BY_EMAIL = "SELECT * FROM Account WHERE email = " +
+			"?";
+	
+	/*
+	 * Retrieve all entries from the 'Account' database table whose 'type' 
+	 * column matches the provided value. 
+	 */
+	private static final String GET_ACCOUNTS_BY_TYPE = "SELECT * FROM Account WHERE type = " +
+			"?";
+	
 
 	/* 
 	 * Retrieve active administrators. Active administrators are those
@@ -93,6 +115,41 @@ public class AccountManager
 	 */
 	private static final String UPDATE_PASSWORD_THRU_LINK = "UPDATE account SET password = ?, " +
 			" salt = ? FROM recover WHERE email = account_id AND key=?";
+	
+	/*
+	 * Updates the 'name' column of the Account table entry whose 'email
+	 * value matches the provided value.
+	 */
+	private static final String UPDATE_NAME = "UPDATE account SET firstname = ? " +
+			" WHERE email = ?";
+	
+	/*
+	 * Updates the 'lastname' column of the Account table entry whose 'email
+	 * value matches the provided value.
+	 */
+	private static final String UPDATE_LAST_NAME = "UPDATE account SET lastname = ? " +
+			" WHERE email = ?";
+	
+	/*
+	 * Updates the 'email' column of the Account table entry whose 'email
+	 * value matches the provided value.
+	 */
+	private static final String UPDATE_EMAIL = "UPDATE account SET email = ? " +
+			" WHERE email = ?";
+	
+	/*
+	 * Updates the 'phone' column of the Account table entry whose 'email
+	 * value matches the provided value.
+	 */
+	private static final String UPDATE_PHONE = "UPDATE account SET phone = ? " +
+			" WHERE email = ?";
+	
+	/*
+	 * Updates the 'type' column of the Account table entry whose 'email
+	 * value matches the provided value.
+	 */
+	private static final String UPDATE_TYPE = "UPDATE account SET type = ? " +
+			" WHERE email = ?";
 
 	/*
 	 * Updates the recovery link entry for the provided account 
@@ -101,6 +158,8 @@ public class AccountManager
 	 */
 	private static final String UPDATE_RECOVERY_LINK = "UPDATE recover SET date_added=?, " +
 			" key=? WHERE account_id=?";
+	
+	
 
 
 	/*****************************************************
@@ -113,6 +172,8 @@ public class AccountManager
 	 */
 	private static final String DELETE_RECOVERY_LINK = "DELETE FROM recover where key " +
 			"= ?";
+	
+	private static final String DELETE_ACCOUNT = "DELETE FROM account where email = ?";
 
 	/*****************************************************
 	 * Other Instance Variables
@@ -123,9 +184,6 @@ public class AccountManager
 	/*Recovery Link Servlet*/
 	private static final String PASS_CHANGE_URL = 
 			"http://localhost:8080/Portglass/passRecovery";
-
-	//Connection object for DB
-	Connection connection = null;
 
 
 
@@ -146,13 +204,13 @@ public class AccountManager
 		return INSTANCE;
 
 	}
-	
+
 	/* *************************************************************************
 	 *
 	 * INSERT METHODS
 	 *
 	 **************************************************************************/
-	
+
 
 	/**
 	 * Creates a new entry in the 'Account' database table. 
@@ -196,7 +254,7 @@ public class AccountManager
 	 * occurred, the key will be blank.
 	 */
 	public String generateRecoveryLink(String email) {		
-	
+
 		long currentTime = System.currentTimeMillis();
 		String key;
 		String link=PASS_CHANGE_URL+"?key=";
@@ -206,18 +264,18 @@ public class AccountManager
 			//Generate a key for the password reset, to be sent via email.
 			key = PasswordManager.encryptSHA256(email+currentTime, 
 					PasswordManager.generateSalt());
-			
+
 			/* 
 			 * Verify if a key has been already entered for the given 
 			 * email and update the entry if so.
 			 */
-			
+
 			expressions.add(currentTime+"");
 			expressions.add(key);
 			expressions.add(email);
 			isProcessed = (DBManager.update(UPDATE_RECOVERY_LINK, expressions.toArray()));
 			expressions.clear();
-	
+
 			/*
 			 * Insert a new key if the provided email address does
 			 * not have any prior entries in the table. Has no effect if
@@ -228,23 +286,23 @@ public class AccountManager
 			expressions.add(key);
 			expressions.add(email);
 			isProcessed=DBManager.update(ADD_RECOVERY_LINK_INSERT, expressions.toArray());
-			
+
 			if (isProcessed) link = link+key;
 		}
 		catch (Exception e){
-			
+
 		}
 		return link;
 	}
-	
-	
+
+
 
 	/* *************************************************************************
 	 *
 	 * UPDATE METHODS
 	 *
 	 **************************************************************************/
-	
+
 	/**
 	 * Queries the 'Recovery' table for all entries whose 'key' column match the key
 	 * value provide. Then, the 'account_id', a column that serves as a foreign key
@@ -260,8 +318,8 @@ public class AccountManager
 	 * @return A boolean indicating if the Query was processed by the database
 	 */
 	public boolean updatePasswordThroughLink(String key, String password, String salt) {		
-		
-		
+
+
 		ArrayList<Object> expressions = new ArrayList<Object>();
 		expressions.add(password);
 		expressions.add(salt);
@@ -269,16 +327,103 @@ public class AccountManager
 		return (DBManager.update(UPDATE_PASSWORD_THRU_LINK, expressions.toArray()));
 	}
 	
+	/**
+	 * Queries the 'Account' database table for all entries whose 'email'
+	 * column matches the provided email value. Then, it updates the 'name'
+	 * column with the 'value' parameter.
+	 * @param value A value to update the 'name' column of the entries that
+	 * match the 'email' address provided
+	 * @param email Refers to the 'Account' table's primary key: 'email' column
+	 * @return False if the query fails, true otherwise.
+	 */
+	public boolean updateFirstName(String value,String email){
+		ArrayList<Object> expressions = new ArrayList<Object>();
+		expressions.add(value);
+		expressions.add(email);
+		return (DBManager.update(UPDATE_NAME, expressions.toArray()));
+	}
 	
+	/**
+	 * Queries the 'Account' database table for all entries whose 'email'
+	 * column matches the provided email value. Then, it updates the 'lastname'
+	 * column with the 'value' parameter.
+	 * @param value A value to update the 'lastname' column of the entries that
+	 * match the 'email' address provided
+	 * @param email Refers to the 'Account' table's primary key: 'email' column
+	 * @return False if the query fails, true otherwise.
+	 */
+	public boolean updateLastName(String value, String email){
+		ArrayList<Object> expressions = new ArrayList<Object>();
+		expressions.add(value);
+		expressions.add(email);
+		return (DBManager.update(UPDATE_LAST_NAME, expressions.toArray()));
+	}
+	
+	/**
+	 * Queries the 'Account' database table for all entries whose 'email'
+	 * column matches the provided email value. Then, it updates the 'email'
+	 * column with the 'value' parameter. If this value is in use by another
+	 * entry, the query fails (in account of UNIQUE PRIMARY KEY exception).
+	 * @param value A value to update the 'email' column of the entries that
+	 * match the 'email' address provided
+	 * @param email Refers to the 'Account' table's primary key: 'email' column
+	 * @return False if the query fails, true otherwise.
+	 */
+	public boolean updateEmail(String value, String email){
+		System.out.println("Attempting to change email..");
+		System.out.println("Email: "+email+".");
+		System.out.println("Change to: "+value+".");
+		ArrayList<Object> expressions = new ArrayList<Object>();
+		expressions.add(value.trim());
+		expressions.add(email.trim());
+		boolean test= (DBManager.update(UPDATE_EMAIL, expressions.toArray()));
+		System.out.println(test);
+		return test;
+	}
+	
+	
+	/**
+	 * Queries the 'Account' database table for all entries whose 'email'
+	 * column matches the provided email value. Then, it updates the 'phone'
+	 * column with the 'value' parameter.
+	 * @param value A value to update the 'phone' column of the entries that
+	 * match the 'email' address provided
+	 * @param email Refers to the 'Account' table's primary key: 'email' column
+	 * @return False if the query fails, true otherwise.
+	 */
+	public boolean updatePhone(String value, String email){
+		ArrayList<Object> expressions = new ArrayList<Object>();
+		expressions.add(value);
+		expressions.add(email);
+		return (DBManager.update(UPDATE_PHONE, expressions.toArray()));
+	}
+	
+	/**
+	 * Queries the 'Account' database table for all entries whose 'email'
+	 * column matches the provided email value. Then, it updates the 'type'
+	 * column with the 'value' parameter.
+	 * @param value A value to update the 'type' column of the entries that
+	 * match the 'email' address provided
+	 * @param email Refers to the 'Account' table's primary key: 'email' column
+	 * @return False if the query fails, true otherwise.
+	 */
+	public boolean updateType(String value, String email){
+		ArrayList<Object> expressions = new ArrayList<Object>();
+		expressions.add(value);
+		expressions.add(email);
+		return (DBManager.update(UPDATE_TYPE, expressions.toArray()));
+	}
+
+
 	/* *************************************************************************
 	 *
 	 * DELETE METHODS
 	 *
 	 **************************************************************************/
-		
-	
+
+
 	/**
-	 * Deletes the row from the 'recover' table in the DB that matches
+	 * Deletes the row from the 'Recover' database table that matches
 	 * the given key. If no row exists, nothing happens.
 	 * @param key Corresponds to a validation key to reset password
 	 * @return A boolean stating whether the query was executed successfully.
@@ -287,15 +432,29 @@ public class AccountManager
 		ArrayList<Object> expressions = new ArrayList<Object>();
 		expressions.add(key);
 		return (DBManager.update(DELETE_RECOVERY_LINK, expressions.toArray()));
-			
+
 	}
 	
+	/**
+	 * Deletes the row from the 'Account' database table that matches
+	 * the given email. If no row exists, nothing happens.
+	 * @param email Corresponds to a value to be compared to the 'email' 
+	 * column of the 'Account' table
+	 * @return A boolean stating if the query has executed.
+	 */
+	public boolean deleteAccount(String email){
+		System.out.println("Attempting to delete "+email+".");
+		ArrayList<Object> expressions = new ArrayList<Object>();
+		expressions.add(email);
+		return (DBManager.update(DELETE_ACCOUNT, expressions.toArray()));
+	}
+
 	/* *************************************************************************
 	 *
 	 * SELECT METHODS
 	 *
 	 **************************************************************************/
-	
+
 
 	/**
 	 * Queries the 'Account' table of the database for rows whose 'type' and 
@@ -316,8 +475,148 @@ public class AccountManager
 			e.printStackTrace();
 		}
 		return list;
-		
+
 	}
+	/**
+	 * Queries the 'Account' table of the database for the rows whose 'name'
+	 * column matches the value of the parameter. It also receives a string 
+	 * used to filter the search according to the privileges of the session's 
+	 * current user. If the user is of type administrator, then any name can
+	 * be searched for. A non authorized user type, or users with general
+	 * accounts, will not receive results from this method.  
+	 * @param query String representation of an attribute to be compared with
+	 * the 'name' column of the database.
+	 * @param type String representation of the account type of the session's
+	 * current user.
+	 * @return An array list of Accounts filtered by name; empty if the user
+	 * is not an administrator.
+	 */
+	public ArrayList<Object> getAccountsByName(String query, String type)
+	{
+		ArrayList<Object> list = new ArrayList<Object>();
+		if(type.equals("admin"))
+		{
+			list.add(query);
+			ResultSet rs = DBManager.execute(GET_ACCOUNTS_BY_NAME, list.toArray());
+			list.clear();
+			try {
+				while (rs.next())
+				{							
+					list.add(createAccountFromRS(rs));
+				}
+			} catch (Exception e ) {
+				e.printStackTrace();
+			}
+		}
+		return list;		
+	}
+	
+	/**
+	 * Queries the 'Account' table of the database for the rows whose 'lastname'
+	 * column matches the value of the parameter. It also receives a string 
+	 * used to filter the search according to the privileges of the session's 
+	 * current user. If the user is of type administrator, then any last name can
+	 * be searched for. A non authorized user type, or users with general
+	 * accounts, will not receive results from this method.  
+	 * @param query String representation of an attribute to be compared with
+	 * the 'lastname' column of the database.
+	 * @param type String representation of the account type of the session's
+	 * current user.
+	 * @return An array list of Accounts filtered by last name; empty if the user
+	 * is not an administrator.
+	 */
+	public ArrayList<Object> getAccountsByLastName(String query, String type)
+	{
+		ArrayList<Object> list = new ArrayList<Object>();
+		if(type.equals("admin"))
+		{
+			list.add(query);
+			ResultSet rs = DBManager.execute(GET_ACCOUNTS_BY_LAST_NAME, list.toArray());
+			list.clear();
+			try {
+				while (rs.next())
+				{							
+					list.add(createAccountFromRS(rs));
+				}
+			} catch (Exception e ) {
+				e.printStackTrace();
+			}
+		}
+		return list;		
+	}
+	
+	
+	/**
+	 * Queries the 'Account' table of the database for the rows whose 'email'
+	 * column matches the value of the parameter. It also receives a string 
+	 * used to filter the search according to the privileges of the session's 
+	 * current user. If the user is of type administrator, then any email can
+	 * be searched for. A non authorized user type, or users with general
+	 * accounts, will not receive results from this method.  
+	 * @param query String representation of an attribute to be compared with
+	 * the 'email' column of the database.
+	 * @param type String representation of the account type of the session's
+	 * current user.
+	 * @return An array list of Accounts filtered by email; empty if the user
+	 * is not an administrator.
+	 */
+	public ArrayList<Object> getAccountsByEmail(String query, String type)
+	{
+		ArrayList<Object> list = new ArrayList<Object>();
+		if(type.equals("admin"))
+		{
+			list.add(query);
+			ResultSet rs = DBManager.execute(GET_ACCOUNTS_BY_EMAIL, list.toArray());
+			list.clear();
+			try {
+				while (rs.next())
+				{							
+					list.add(createAccountFromRS(rs));
+				}
+			} catch (Exception e ) {
+				e.printStackTrace();
+			}
+		}
+		return list;		
+	}
+	
+	/**
+	 * Queries the 'Account' table of the database for the rows whose 'type'
+	 * column matches the value of the parameter. It also receives a string 
+	 * used to filter the search according to the privileges of the session's 
+	 * current user. If the user is of type administrator, then any type can
+	 * be searched for. A non authorized user type, or users with general
+	 * accounts, will not receive results from this method.  
+	 * @param query String representation of an attribute to be compared with
+	 * the 'type' column of the database.
+	 * @param type String representation of the account type of the session's
+	 * current user.
+	 * @return An array list of Accounts filtered by type; empty if the user
+	 * is not an administrator.
+	 */
+	public ArrayList<Object> getAccountsByType(String query, String type)
+	{
+		ArrayList<Object> list = new ArrayList<Object>();
+		if(type.equals("admin"))
+		{
+			list.add(query);
+			ResultSet rs = DBManager.execute(GET_ACCOUNTS_BY_TYPE, list.toArray());
+			list.clear();
+			try {
+				while (rs.next())
+				{							
+					list.add(createAccountFromRS(rs));
+				}
+			} catch (Exception e ) {
+				e.printStackTrace();
+			}
+		}
+		return list;		
+	}
+	
+	
+	
+	
 
 	/**
 	 * Queries the 'Account' table of the database for rows that have the same
@@ -332,7 +631,7 @@ public class AccountManager
 
 		ArrayList<Object> expressions = new ArrayList<Object>();
 		expressions.add(account.getEmail());
-		ResultSet rs = DBManager.execute(GET_ACCOUNT, expressions.toArray());
+		ResultSet rs = DBManager.execute(GET_ACCOUNTS_BY_EMAIL, expressions.toArray());
 		Account result = null;
 		try {
 			if(rs.next() && rs.isFirst() && rs.isLast()){					
@@ -358,7 +657,7 @@ public class AccountManager
 	{
 		ArrayList<Object> expressions = new ArrayList<Object>();
 		expressions.add(email);
-		ResultSet rs = DBManager.execute(GET_ACCOUNT, expressions.toArray());
+		ResultSet rs = DBManager.execute(GET_ACCOUNTS_BY_EMAIL, expressions.toArray());
 		Account result = null;
 		try {
 			if(rs.next() && rs.isFirst() && rs.isLast()){				
@@ -369,7 +668,7 @@ public class AccountManager
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Queries the 'Account' table of the database for rows that have the
 	 * same value of the provided email address in the 'email' column. Given 
@@ -416,7 +715,7 @@ public class AccountManager
 		ArrayList<Object> expressions = new ArrayList<Object>();
 		expressions.add(email);
 		ResultSet rs = DBManager.execute(GET_AVAILABILITY, expressions.toArray());
-			
+
 		try {
 			if(rs.next() && rs.isFirst() && rs.isLast())
 			{
@@ -425,7 +724,7 @@ public class AccountManager
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return isAvailable;
 	}
 
@@ -440,24 +739,24 @@ public class AccountManager
 	 * @return A boolean stating whether this key is still valid.
 	 */
 	public boolean isValidRecoveryLink(String key){
-		
+
 		boolean isValid = false;
 		ArrayList<Object> expressions = new ArrayList<Object>();
 		expressions.add(key);
 		ResultSet rs = DBManager.execute(GET_RECOVERY_LINK_DATE, expressions.toArray());
-		
-			//If this key exists, verify if over the threshold time.
-			try {
-				if(rs.next() && rs.isFirst() && rs.isLast())
-				{
-					if(RECOVERY_LINK_THRESHOLD-(System.currentTimeMillis()-rs.getLong(1))>0)
-						isValid=true;
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
 
-		
+		//If this key exists, verify if over the threshold time.
+		try {
+			if(rs.next() && rs.isFirst() && rs.isLast())
+			{
+				if(RECOVERY_LINK_THRESHOLD-(System.currentTimeMillis()-rs.getLong(1))>0)
+					isValid=true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+
 		return isValid;
 	}
 
@@ -466,7 +765,7 @@ public class AccountManager
 	 * UTILITY METHODS
 	 *
 	 **************************************************************************/
-	
+
 
 	/**
 	 * Utility method to add the result set columns to an account object in the respective
@@ -480,19 +779,24 @@ public class AccountManager
 	private Account createAccountFromRS(ResultSet rs) {
 		Account result = null;
 		try {
-			result = new Account(rs.getString(1).trim(), rs.getString(2).trim(),
-					rs.getString(3).trim(), rs.getString(4).trim(), rs.getString(5),
-					rs.getBoolean(6), rs.getString(7).trim(), rs.getString(8).trim());
+			result = new Account(rs.getString(1), rs.getString(2),
+					rs.getString(3), rs.getString(4), rs.getString(5),
+					rs.getBoolean(6), rs.getString(7), rs.getString(8));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println("RS: ");
+		System.out.println(result.toString());
 		return result;
+		
 	}
 
 	public static void main(String[] args){
-		Account user = new Account();
-		System.out.println(AccountManager.getInstance().addAccount(user));
+	
+		ArrayList<Object> list = AccountManager.getInstance().getAccountsByType("admin", "admin");
+		Account user = (Account) list.get(1);
+		System.out.println(user.getEmail()+".");
 	}
 
 }

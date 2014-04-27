@@ -134,6 +134,7 @@ public class DBManager {
 		try {
 			
 			startConnection();
+			connect.setAutoCommit(false);
 			PreparedStatement statement = getConnection().prepareStatement(query);
 	    	for(int i=0; i<expressions.length; i++)
 	    	{
@@ -142,16 +143,59 @@ public class DBManager {
 	    	statement.executeUpdate();
 	    	processed=true;
 		} catch (ClassNotFoundException e) {
+			System.out.println(e);
 			logger.log(SEVERE, e.getMessage());
 		} catch (SQLException e) {
+			System.out.println(e);
 			logger.log(SEVERE, e.getMessage());
 		}
+		
 		finally{
 			endConnection();
 		}
     	return processed;
     	
     }
+    
+    /**
+     * Executes an update query on the database with the given query
+     * and query statements. Used for queries that either INSERT,
+     * UPDATE, or DELETE entries. Returns a boolean stating if the
+     * query was accepted by the database.
+     * Note: This method is used to run multiple queries on a same connection.
+     * Always remember to call the connection.close() method once no
+     * further queries are made.
+     * @param connection Established connection to the database.
+     * @param query String version of query to the database.
+     * @param expressions Replaces attributes that where dimmed with '?'
+     * on the provided query String.
+     * @return A boolean stating if the query was processed by the 
+     * database.
+     * @throws SQLException Thrown by any error during query execution.
+     */
+    public static boolean update(Connection connection, String query, 
+    		Object[] expressions) 
+    		
+    {
+    	boolean processed=false;
+    	
+		try {
+			connection.setAutoCommit(false);
+			PreparedStatement statement = connection.prepareStatement(query);
+	    	for(int i=0; i<expressions.length; i++)
+	    	{
+	    		statement.setObject(i+1, expressions[i]);
+	    	}
+	    	statement.executeUpdate();
+	    	processed=true;
+		} catch (SQLException e) {
+			logger.log(SEVERE, e.getMessage());
+		}
+		
+    	return processed;
+    	
+    }
+    
     
     /**
      * Executes a query on the database with the given expressions.
@@ -182,6 +226,41 @@ public class DBManager {
 		finally{
 			endConnection();
 		}
+    	return result;
+    }
+    
+    /**
+     * Executes a query on the database with the given expressions on
+     * an established connection. Used for queries that retrieve data in 
+     * the form of ResultSet objects. If an error occurs the method returns
+     * null. 
+     * Note: This method is used to run multiple queries on a same connection.
+     * Always remember to call the connection.close() method once no
+     * further queries are made.
+     * @param connection Established connection object to the database.
+     * @param query Query to be executed
+     * @param expressions values for parameters in the provided query.
+     * @return ResultSet on successful query execution, null otherwise.
+     */
+    public static ResultSet execute(Connection connection, String query,
+    		Object[] expressions) 
+    {
+    	ResultSet result = null;
+ 
+		try {
+			PreparedStatement statement = connection.prepareStatement(query);
+			for(int i=0; i<expressions.length; i++)
+	    	{
+	    		statement.setObject(i+1, expressions[i]);
+	    	}
+			
+			result = statement.executeQuery();
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
     	return result;
     }
     

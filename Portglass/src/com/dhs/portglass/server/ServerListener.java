@@ -2,16 +2,31 @@ package com.dhs.portglass.server;
 
 
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
 
+import com.dhs.portglass.directory.Indexer;
+import com.dhs.portglass.services.AccountManager;
+import com.dhs.portglass.services.MailManager;
+import com.dhs.portglass.services.ThreadPoolManager;
+
+
 /**
- * Configuration class that initializes the database variables.
- * The same are available throughout the service life of the server.
- * @author saldam4
+ * Configuration class that is invoked when the application is deployed.
+ * Loads property settings defined in the web.xml configuration file
+ * of this application. Additionally, it starts the Indexer so 
+ * that the specified directory is monitored throughout the life of the
+ * application scope and files entering the directory will be indexed
+ * into the database.
+ * @author Manuel R Saldana Pueyo
+ *
  */
 
 @WebListener
@@ -27,6 +42,11 @@ public class ServerListener implements ServletContextListener
 	private static String INDEX_URL;
 	
 	
+	private static Indexer INDEXER;
+	
+	
+	
+
 	/**
 	 * On Server startup, initializes database variables according to the 
 	 * specified values on the web.xml.
@@ -46,6 +66,19 @@ public class ServerListener implements ServletContextListener
 		IMG_DIR = event.getServletContext().getRealPath("/img/");
 		DATA_DIR = event.getServletContext().getRealPath("/WEB-INF/data/");
 		INDEX_URL = event.getServletContext().getInitParameter("appliation.url");
+		
+		
+		
+		try {
+			INDEXER= new Indexer(new File("/Users/Manuel/git/Portglass/Portglass/WebContent/WEB-INF/data/monitored/").toPath());
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		System.out.println("Context Initialized");
 	}
 	
@@ -126,14 +159,24 @@ public class ServerListener implements ServletContextListener
 		return INDEX_URL;
 	}
 	
+	
+	
+
+
+	
+
+
+
+	
+	
+	
 	/**
-	 * Granted that the project does not need to close any objects when the 
-	 * server is powered off, this method is not implemented. Since this class implements
-	 * the context listener, it is mandatory that the class be mentioned nonetheless.
-	 */
+	 * Shuts down all instances that may hold on to resources and threads.
+	 */ 
 	@Override
 	public void contextDestroyed(ServletContextEvent arg0)
 	{
+		INDEXER.shutdown();
 	}
 	
 

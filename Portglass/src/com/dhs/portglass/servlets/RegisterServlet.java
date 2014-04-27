@@ -12,11 +12,16 @@ import javax.servlet.http.HttpServletResponse;
 import com.dhs.portglass.dto.Account;
 import com.dhs.portglass.services.AccountManager;
 import com.dhs.portglass.services.MailManager;
-import com.dhs.portglass.util.ThreadPoolController;
+import com.dhs.portglass.services.ThreadPoolManager;
 
 
 /**
- * Servlet implementation class register
+ * This Servlet is called upon in order to register a new user. Provided
+ * that all user data is complete, according to the implementation of 
+ * the 'Account' DTO, and validated thru the use of the client side web
+ * application; a new entry will be made in the 'account' database table.
+ * Upon success, all active administrators will receive notifications of
+ * this event.
  */
 @WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
@@ -68,7 +73,7 @@ public class RegisterServlet extends HttpServlet {
 			{
 			
 				//Send Email to All Administrators Asynchronously
-				ThreadPoolController.getInstance().getThreadPoolExecutor().execute(
+				ThreadPoolManager.getInstance().getThreadPoolExecutor().execute(
 						MailManager.getInstance().sendAsyncNewAccountEmail(account));
 				
 			}

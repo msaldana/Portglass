@@ -1,13 +1,13 @@
 package com.dhs.portglass.directory;
 
-import static com.dhs.portglass.util.IO.deserialize;
-import static com.dhs.portglass.util.IO.serialize;
 
 import static java.nio.file.Files.exists;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
+import static com.dhs.portglass.IO.IO.deserialize;
+import static com.dhs.portglass.IO.IO.serialize;
 import static com.dhs.portglass.directory.Indexer.IndexAction.ADD;
 import static com.dhs.portglass.directory.Indexer.IndexAction.MODIFY;
 import static com.dhs.portglass.directory.Indexer.IndexAction.DELETE;
@@ -26,13 +26,15 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.dhs.portglass.IO.PropertyConfig;
 import com.dhs.portglass.directory.DirectoryWatcher;
-
+import com.dhs.portglass.services.SensorManager;
+import com.dhs.portglass.services.ThreadPoolManager;
+  
 
 
 /**
@@ -64,11 +66,10 @@ public class Indexer {
 	 * long periods of time without indexing new documents. The Indexer's
 	 * shutdown() method will shutdown the thread pool. 
 	 * 
-	 * A ScheduledExecutorService is used to periodically perform two tasks:
-	 * reopening IndexSearchers so changes to the index will be visible to new
-	 * searches, and flushing index updates to disk. These tasks are separate
-	 * and need not run at similar intervals. Calling shutdown() will also shut
-	 * down this executor.
+	 * A ScheduledExecutorService access method is provided for implementing
+	 * scheduled flushes to the system, so that the indexer updates the the files
+	 * that have been indexed to the serialization file.
+	 * Calling shutdown() will also shutdown this executor.
 	 */
 	
 	public static final int PROCESSORS =
@@ -79,32 +80,44 @@ public class Indexer {
 	private volatile Path indexPath;
 	private volatile Path serializedFile;
 	private volatile ConcurrentMap<Integer, Long> indexCache;
-	private volatile ThreadPoolExecutor threadPoolExecutor =
-			newThreadPoolExecutor(PROCESSORS+1, THREAD_TIMEOUT_SECONDS);
+	private volatile ThreadPoolExecutor threadPoolExecutor = ThreadPoolManager.getInstance().getThreadPoolExecutor();
 	private volatile ScheduledExecutorService scheduledExecutor =
 			Executors.newSingleThreadScheduledExecutor();
 
 	
 	/**
 	 * Creates a new Indexer and indexes any unindexed documents. An exception
-	 * will be thrown if the directory with the images and text files doesn't exist.
+	 * will be thrown if the directory with the sensor text files doesn't exist.
 	 *  The index directory need not exist and will be created if necessary.
 	 * @param documentsPath The directory where the documents to be indexed are
-	 * @param indexPath The directory where the index will be stored
 	 * @exception IOException The usual cause is that the document directory
-	 * 		doesn't exist.
+	 * 	doesn't exist.
 	 */
-	public Indexer(Path documentsPath, Path indexPath) throws IOException,
+	public Indexer(Path documentsPath) throws IOException,
 			ClassNotFoundException {
 		try {
-			init(documentsPath, indexPath);
+			init(documentsPath);
+			System.out.print("Indexer Starting..");
 		} catch (Exception e) {
 			shutdown();
 			throw e;
 		}
 	}
 	
-	private void init(Path documentsPath, Path indexPath) throws
+	/**
+	 * Initializes the Indexer instance by starting a DirectoryWatcher instance
+	 * with a PoolThreadExecutor. It also creates an 'indexedDocuments.serialized'
+	 * file on the given path. The DirectoryWatcher will monitor this directory
+	 * and all changes will be reflected upon the serialized file. Thus, when
+	 * a file is added, the database is updated and the file is serialized so the
+	 * DirectoryWatcher knows that is has been indexed. When alterations on the file
+	 * or deletion of the file is detected by the DirectoryWatcher, the file is
+	 * updated in the serialization.
+	 * @param documentsPath Path to data to be monitored.
+	 * @throws IOException Document Directory doesn't exist.
+	 * @throws ClassNotFoundException
+	 */
+	private void init(Path documentsPath) throws
 			 IOException, ClassNotFoundException {
 		if (!exists(documentsPath)) {
 			throw new FileNotFoundException(
@@ -112,28 +125,34 @@ public class Indexer {
 		}
 		
 		if (documentsPath.isAbsolute()) {
-			this.documentsPath = Paths.get(".").toAbsolutePath().
+			
+			this.documentsPath = Paths.get("").toRealPath().
 					relativize(documentsPath);
+			
 		} else {
+			
 			this.documentsPath = documentsPath;
+		
 		}
 		
-		
+		this.indexPath = documentsPath;
 		this.indexPath = indexPath.normalize();
+	
 		serializedFile =
 				this.indexPath.resolve("indexedDocuments.serialized");
-		
-		
+		System.out.println(documentsPath);
+		indexCache = getIndexedDocuments();
+		System.out.println(documentsPath);
 		indexNewFiles();
+		
 		// Start scheduled tasks
-		//scheduledExecutor.scheduleAtFixedRate(new MaybeReopenRunnable(),
-			//	10, 30, TimeUnit.SECONDS);
+		
 		scheduledExecutor.scheduleAtFixedRate(new FlushToDiskRunnable(),
 				10, 60, TimeUnit.SECONDS);
 		
 		// Start DirectoryWatcher
-		//threadPoolExecutor.execute(new DirectoryWatcher(this.documentsPath,
-			//	new IndexingFilter(), threadPoolExecutor));
+		threadPoolExecutor.execute(new DirectoryWatcher(this.documentsPath,
+				new IndexingFilter(), threadPoolExecutor));
 	}
 
 	/**
@@ -146,23 +165,7 @@ public class Indexer {
 	}
 	
 
-	/**
-	 * Returns a ThreadPoolExecutor with an unbounded queue and the specified
-	 * pool size and keep-alive time. The number of threads can be altered by
-	 * calling setCorePoolSize(). Because the queue is unbounded, there will
-	 * never be more threads than the core pool size; the max pool size has
-	 * no effect.
-	 * @param threads The maximum number of threads in the pool
-	 * @param timeout The keep-alive time for idle threads, measured in seconds
-	 */
-	private static ThreadPoolExecutor newThreadPoolExecutor(int threads,
-			long timeout) {
-		ThreadPoolExecutor executor = new ThreadPoolExecutor(threads,
-				Integer.MAX_VALUE, timeout, TimeUnit.SECONDS,
-				new LinkedBlockingQueue<Runnable>());
-		executor.allowCoreThreadTimeOut(true);
-		return executor;
-	}
+	
 
 	/**
 	 * If indexedDocuments had previously been serialized, deserializes it.
@@ -187,10 +190,12 @@ public class Indexer {
 
 	
 	/**
-	 * Indexes all PDFs that aren't already indexed.
+	 * Indexes all text files that aren't already indexed.
 	 */
 	private void indexNewFiles() throws IOException {
+		
 		SimpleFileVisitor<Path> fileVisitor = new IndexingFileVisitor(indexCache);
+		System.out.println(documentsPath);
 		Files.walkFileTree(documentsPath, fileVisitor);
 	}
 	
@@ -218,7 +223,7 @@ public class Indexer {
 				System.err.println("Indexer: ATTEMPTING TO RESTART...");
 				shutdown();
 				try {
-					init(documentsPath, indexPath);
+					init(documentsPath);
 				} catch (ClassNotFoundException | IOException e1) {
 					System.err.format("Indexer: FATAL ERROR, " +
 							"SHUTTING DOWN (%s)%n ", e1);
@@ -236,13 +241,13 @@ public class Indexer {
 	}
 	
 	/**
-	 * Indexes a single PDF file.
+	 * Indexes a single sensor text file.
 	 */
-	private class PDFIndexingRunnable implements Runnable {
+	private class SensorIndexingRunnable implements Runnable {
 		private final Path file;
 		private final IndexAction action;
 		
-		public PDFIndexingRunnable(Path file, IndexAction action) {
+		public SensorIndexingRunnable(Path file, IndexAction action) {
 			this.file = file;
 			this.action = action;
 		}
@@ -255,26 +260,16 @@ public class Indexer {
 				
 				if (action == ADD || action == MODIFY) {
 					String name = file.getFileName().toString();
-					// Strip last four characters (.pdf)
+					// Strip last four characters (.txt)
 					name = name.substring(0, name.length()-4);
 					modifiedTime = Files.getLastModifiedTime(file).toMillis();
-					
-					
-				}
-				
-				
-				if (action == MODIFY || action == DELETE) {
-					//"hashCode", String.valueOf(hashCode);
-				}
-				
-				if (action == ADD) {
-					
 					indexCache.put(hashCode, modifiedTime);
-				} else if (action == MODIFY) {
-					;
-					indexCache.put(hashCode, modifiedTime);
+					String[] parsedFileContents = PropertyConfig.loadProperties(file.toFile());
+					SensorManager.getInstance().indexAddEvent(parsedFileContents,
+							hashCode, modifiedTime);
+					
 				} else if (action == DELETE) {
-					
+					SensorManager.getInstance().indexDeleteEvent(hashCode);
 					indexCache.remove(hashCode);
 				}
 				System.out.format("Indexer: %s %s%n", action, file);
@@ -286,7 +281,7 @@ public class Indexer {
 	}
 	
 	/**
-	 * File visitor for recursively indexing all PDFs in a directory.
+	 * File visitor for recursively indexing all Sensor Text files in a directory.
 	 */
 	private class IndexingFileVisitor extends SimpleFileVisitor<Path> {
 		
@@ -300,18 +295,18 @@ public class Indexer {
 		@Override public FileVisitResult visitFile(Path file,
 				BasicFileAttributes attrs) throws IOException {
 			int hashCode = getHashCode(file);
-			boolean isPdf = file.toString().endsWith(".pdf");
+			boolean isTxt = file.toString().endsWith(".txt");
 			boolean indexed = cacheCopy.containsKey(hashCode);
-			if (isPdf && indexed) {
+			if (isTxt && indexed) {
 				long modifiedTime = Files.getLastModifiedTime(file).toMillis();
 				if (modifiedTime != cacheCopy.get(hashCode)) {
 					threadPoolExecutor.execute(
-							new PDFIndexingRunnable(file, MODIFY));
+							new SensorIndexingRunnable(file, MODIFY));
 				}
 				// Remove existing files so only deleted files remain
 				cacheCopy.remove(hashCode);
-			} else if (isPdf && !indexed) {
-				threadPoolExecutor.execute(new PDFIndexingRunnable(file, ADD));
+			} else if (isTxt && !indexed) {
+				threadPoolExecutor.execute(new SensorIndexingRunnable(file, ADD));
 			}
 			return FileVisitResult.CONTINUE;
 		}
@@ -335,7 +330,7 @@ public class Indexer {
 		}
 	}
 	
-	private class IndexingFilter  {
+	public class IndexingFilter  implements WatchEventFilter{
 		private Runnable NULL_RUNNABLE = new Runnable() {
 			 public void run() {}
 		};
@@ -350,13 +345,13 @@ public class Indexer {
 			Kind<Path> eventKind = event.kind();
 			System.out.format("DirectoryWatcher: %s %s%n", eventKind,
 					contextPath);
-			if (contextPath.toString().endsWith(".pdf")) {
+			if (contextPath.toString().endsWith(".txt")) {
 				if (eventKind == ENTRY_CREATE) {
-					return new PDFIndexingRunnable(contextPath, ADD);
+					return new SensorIndexingRunnable(contextPath, ADD);
 				} else if (eventKind == ENTRY_MODIFY) {
-					return new PDFIndexingRunnable(contextPath, MODIFY);
+					return new SensorIndexingRunnable(contextPath, MODIFY);
 				} else if (eventKind == ENTRY_DELETE) {
-					return new PDFIndexingRunnable(contextPath, DELETE);
+					return new SensorIndexingRunnable(contextPath, DELETE);
 				}
 			}
 			return NULL_RUNNABLE;
