@@ -134,7 +134,7 @@ public class DBManager {
 		try {
 			
 			startConnection();
-			connect.setAutoCommit(false);
+			
 			PreparedStatement statement = getConnection().prepareStatement(query);
 	    	for(int i=0; i<expressions.length; i++)
 	    	{
@@ -180,7 +180,7 @@ public class DBManager {
     	boolean processed=false;
     	
 		try {
-			connection.setAutoCommit(false);
+			
 			PreparedStatement statement = connection.prepareStatement(query);
 	    	for(int i=0; i<expressions.length; i++)
 	    	{

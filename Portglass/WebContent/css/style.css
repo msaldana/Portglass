@@ -266,6 +266,9 @@ a img:hover {
 	filter: alpha(opacity = 70);}
     
 .inline{ inline-block;  }
+
+img.thumb { height: 100px; width: 100px;}
+img.standard { height: 500px; width: 500px;}
     
 /* -------------------------------------------------------------
 ======	PAGES

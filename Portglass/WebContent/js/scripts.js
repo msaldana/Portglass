@@ -33,7 +33,24 @@ $(document).ready(function() {
 		return this;
 	};
 
+	$('.toggle-view li').click(function () {
+	    var text = $(this).children('.toggle');
+	    
+	    if (text.is(':hidden')) {
+	        text.slideDown('fast');
+	        $(this).children('.toggle-title').addClass('tactive');      
+	    } else {
+	        text.slideUp('fast');
+	        $(this).children('.toggle-title').removeClass('tactive');       
+	    }       
+	});
+	
+	
+				
+				
+				
 
+			
 
 
 	if (jQuery().flexslider) {
@@ -688,8 +705,119 @@ $(document).ready(function() {
 
 		});
 
+		/* -------------------------------------
+		 * SEARCH RESULT METHODS - SUB SECTION
+		 *    IMAGE SEARCH METHODS
+		 * -------------------------------------*/
 
 
+		/**
+		 * Invoked when a submit is done on the search field of the
+		 * Image Management Tool of the Portglass System. This will
+		 * remove current search container nodes from the result section,
+		 * does an asynchronous call to the search web service of Portglass,
+		 * and writes the results on the page.
+		 */
+		$('#image-search-form').submit(function(){
+			//delete all previous children results
+			$('#results > ul').empty();
+			//hide create-account form if shown
+			$('#upload-section').hide();
+			
+
+			//append a search animation to alert the user 
+			//the query is being done.
+			$('#results > ul').append('<label id="load" class="load"  >'+
+					'<img src="../img/loader.gif"/> Searching for Images ...'+
+			'</label>');
+			//Fetch JSON information for the Search: filter refers to current 
+			//selected search filter.
+			var filter = $("input[name='searchRadio']:checked").val(); 
+			$.getJSON("./../search",
+					{
+				filter: filter,
+				query : $('#search').val(),
+
+					})
+					.done(function(data)
+							{
+						var results = 0;
+						// for each JSON result, append a children container
+						// to the result section
+						$.each(data.images, function(i, images){
+							results ++;
+
+							children = $('#results > ul');
+
+							children.append(
+									'<li class="result-entry">'+
+									'<h5 class="toggle-title resultChild">Image Name: '+ images.name +
+									'<span class="toggle-title-detail resultChild">-'+
+									images.type+'</span>'+
+									'</h5>'+
+									'<div class="toggle grid-wrap">'+
+									'<ul class="grid col-two-thirds mq3-col-full">'+
+									'<li>Description</li>'+
+									'<li>'+images.description+'</li>'+
+									'</ul>'+
+									'<ul class="grid col-one-third mq3-col-full">'+
+									'<li> <img class="thumb" src="./../image?file='+images.filename+'&&type=3"> </li>'+
+									'<li >Name: '+images.name+'</li>'+
+									'<li >Owner: '+images.creator+'</li>'+
+									'<li >Created: '+images.datecreated+'</li>'+
+									'<li >At: '+images.timeCreated+'</li>'+
+									'<li >Type: '+images.type+'</li>'+
+									'<li><a href=".././view?filter=1&&value='+images.filename+'">Go to Image</a></li>'+
+			
+									'</ul>'+
+									
+							'</div></li>');	
+							
+						});
+						//Remove load when results finish loading.
+						$('#load').remove();
+
+						//No Results, alert user.
+						if (results == 0){
+							if(filter==5){
+								$('#results > ul').append(
+										'<a> There are no uploaders under the name '+$('#search').val()+
+								'.</a>');	
+							}
+							else if(filter==6){
+
+								$('#results > ul').append(
+										'<a> There are no images with the name '+$('#search').val()+
+								'.</a>');			
+							}
+							else if(filter==7){
+
+								$('#results > ul').append(
+										'<a> There are no images of the type '+$('#search').val()+
+								'.</a>');
+							}
+							else {
+
+								$('#results > ul').append(
+										'<a> Unespected filter for the value: '+$('#search').val()+
+								'.</a>');
+							};
+
+						}
+
+
+							}).fail(function (){
+								// On fail still remove the loading element
+								$('#load').remove();
+								// Alert error. 
+								$('#results > ul').append(
+										'<a id="errorMessage" class="error">Service Unavailable.</a>'+
+								'<a> Please contact support at support.portglass@gmail.com </a>');
+
+							});	
+			// Make sure the submit does not reload page.
+			return false;
+		});
 
 
 
@@ -799,37 +927,12 @@ $(document).ready(function() {
 
 			$('#results-section').empty();
 			$('#image-search-tool').hide();
+			
+			$('#myImages-section').empty();
 			$('#owner-section').hide();
 
-			$('#upload-section').find("h2").after(
-					'<section id="upload-result">'+
-					'<p class="warning">Please fill in all fields</p>'+
-					'<form id="file_upload_form"  enctype="multipart/form-data" >'+
-					'<ul >'+
-					'<li>'+
-					'	<iframe id="section" src="frame.jsp"></iframe>'+
-					'</li>'+
-					'<li ><label for="image-name">Name:</label> <input type="text"'+
-					'	name="image-name" id="image-name" required ></li>'+									
-					'<li><label for="type-select">Select Type:</label> <select'+
-					' name="type-select" id="type-select">'+
-					'<option value=hyperspectral>Hyperspectral</option>'+
-					'<option value=infrared>Infrared</option>'+
-					'<option value=rgb >RGB</option>'+
-					'</select></li>'+				
-					'<li>'+
-					'<label for="image-description">Description:</label>'+
-					'<textarea name="image-description" id="image-description"'+
-					' cols="100" rows="6" >'+
-					'</textarea>'+
-					'</li>'+
-
-					'<li>'+
-					'<button id= "upload_button"  class="upload_button button fright">Upload!</button>'+
-					'</li>'+
-					'</ul>'+
-					'</form></section>'
-			);
+			$('#image-name').val("");
+			$('#image-description').val("");
 			$('#upload-section').show();
 
 		});
@@ -1150,7 +1253,7 @@ $(document).ready(function() {
 
 				submitHandler: function(form) {
 					/* show loader and hide form while adding */
-					$("#upload-section").append('<label id="load" class="load"  >'+
+					$("#upload-section").after('<label id="load" class="load"  >'+
 							'<img src="../img/loader.gif"/> Uploading Image ...'+
 					'</label>');
 					$('#upload-section').hide();
@@ -1163,17 +1266,21 @@ $(document).ready(function() {
 							},
 							function(data,status)
 							{
+								$('#image-search-tool').show();
+								document.getElementById("frame-section").contentDocument
+								.location.reload(true);
 								if ($.trim(data) == 'noimage'){
-									
-									
+									$('#load').remove();
+									alert('no image');
 								}	
 								else if ($.trim(data) == 'false'){
 									// Reset all form Values
+									alert('failed');
+									$('#load').remove();
 									$(this).find("#load").remove();
 								}	
 								else {
-									// Remove the upload section
-									$('#upload-result').remove();
+									
 									$('#load').remove();
 									$(this).find("#load").remove();
 									// Hide form and return to search section
