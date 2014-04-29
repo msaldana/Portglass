@@ -1,7 +1,5 @@
 package com.dhs.portglass.dto;
 
-import java.sql.Date;
-
 
 /**
  * This POJO is used to map the 'image_entry' database table result 
@@ -16,7 +14,7 @@ public class ImageMessage {
 		private String author;
 		private String image;
 		private String message;
-		private Date timestamp;
+		private String timestamp;
 		
 		/**
 		 * Default Constructor
@@ -26,7 +24,7 @@ public class ImageMessage {
 		}
 		
 		public ImageMessage(String author, String image, String message,
-				Date timestamp)
+				String timestamp)
 		{
 			this.author = author;
 			this.image = image;
@@ -64,7 +62,7 @@ public class ImageMessage {
 		/**
 		 * @return the timestamp
 		 */
-		public Date getTimestamp() {
+		public String getTimestamp() {
 			return timestamp;
 		}
 
@@ -97,7 +95,7 @@ public class ImageMessage {
 		/**
 		 * @param timestamp the timestamp to set
 		 */
-		public void setTimestamp(Date timestamp) {
+		public void setTimestamp(String timestamp) {
 			this.timestamp = timestamp;
 		}
 

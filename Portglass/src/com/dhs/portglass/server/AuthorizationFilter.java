@@ -25,91 +25,116 @@ import com.dhs.portglass.security.AuthorizationManager;
 public class AuthorizationFilter implements Filter 
 {
 	// Class Instance variables - Forward Page
-	private String errorPage;
-    
-	/**
-     * Default constructor. 
-     */
-    public AuthorizationFilter() {
-        // TODO Auto-generated constructor stub
-    }
+	private String loginPage;
 
-    /**
+	/**
+	 * Default constructor. 
+	 */
+	public AuthorizationFilter() {
+		// TODO Auto-generated constructor stub
+	}
+
+	/**
 	 * @see Filter#init(FilterConfig) 
-	 * Filter is configured with a system login page. This
-	 * pages should be set on the web.xml configuration under
-	 * the context parameter error.page and login.page.
+	 * The <Filter> init method is utilized to configure the 
+	 * forward login class to the one defined in the web.xml 
+	 * configuration of the Portglass System.  
+	 * the context parameter app.login .
 	 */
 	public void init(FilterConfig fConfig) throws ServletException {
+		System.out.println("Filter Init");
 		if (fConfig != null)
 		{
-			errorPage = fConfig.getInitParameter("error.page");
+			loginPage= fConfig.getInitParameter("app.login");
+
 		}
 	}
-    
+
 	/**
-	 * @see Filter#destroy() 
+	 * @see Filter#destroy()
+	 * Unimplemented. No action needed when the application 
+	 * is shutdown, with regards to this <Filter>. 
 	 */
 	public void destroy() { /* TODO Auto-generated method stub*/};
-	
-	private void returnError(ServletRequest request, ServletResponse response,
-			String[] errorDetails) throws ServletException, IOException
-	{
-		request.setAttribute("details", errorDetails);
-		request.getRequestDispatcher(errorPage).forward(request, response);
+
+
+	/**
+	 * Utility method to redirect the <ServletRequest> and <ServletResponse>
+	 * to the configured login page. See the web.xml of the Portglass 
+	 * system for a definition of the configuration.
+	 * @param request
+	 * @param response
+	 */
+	public void returnLogin(ServletRequest request, ServletResponse response, String message){
+		// use RequestDispatcher to forward request internally
+		try {
+			request.setAttribute("error", message);
+			request.getRequestDispatcher(loginPage).forward(request, response);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
 	}
-	  
-	 
+
+
 	/**
 	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
-	 * Obtains current Account (current user) from the current session and
-	 * invokes a singleton AuthorizationManager to determine if  user is 
+	 * Obtains current <Account> (current user) from the current <HttpSession>
+	 * and invokes a singleton <AuthorizationManager> to determine if  user is 
 	 * authorized for the requested resource. If not, user is redirected
 	 * to Login Page.
 	 */
 	public void doFilter(ServletRequest request, ServletResponse response, 
 			FilterChain chain) throws IOException, ServletException 
-	{
+			{
+		
+		String message;
+
+
 		//Verify that login page is set up correctly
-		if(errorPage == null)
+		if(loginPage == null)
 		{
-			String[] details = {"AuthorizationFilter not properly configured! " +
-					"Contact Administrator."};
-					
-			returnError(request, response, details);
-		}
-		// Return the current session associated with this request
-		// If there is no session, do not create one.
-		HttpSession session = ((HttpServletRequest)request).getSession(false);
-		// Retrieve the session's user.
-		Account currentUser = (Account)session.getAttribute("user");
-		
-		if (currentUser == null)
-		{
-			String[] details = {"Please login to access data."};
-			returnError(request, response, details);
+			System.out.println("Authorization Filter not properly configured");
+			//Redirect to login page (this means web.xml is not configured properly).
+
+			// Write response body.
+			message = "filter";
+			returnLogin(request, response, message);
+
 		}
 		
+		Account currentUser = null;
+	
+		// Return the current user associated with this request
+		// If there is no session, do not create one, and keep using 
+		// null as the currentUser.
+		if(((HttpServletRequest) request).getSession(false) != null){
+			HttpSession session = ((HttpServletRequest) request).getSession(false);
+			if( session.getAttribute("user") != null){
+				currentUser = (Account)session.getAttribute("user");
+			}
+		}
+
+		//Get requested URI
+		String URI = ((HttpServletRequest)request).getRequestURI();
+
+		//See if user is authorized
+		boolean authorized = AuthorizationManager.getInstance().isAuthorized
+				(currentUser, URI);
+		if (authorized) 
+		{
+			chain.doFilter(request,response);
+			System.out.println("Authorized: "+authorized);
+		}
 		else
 		{
-			//Get requested URI
-			String URI = ((HttpServletRequest)request).getRequestURI();
-			
-			//See if user is authorized
-			boolean authorized = AuthorizationManager.getInstance().isAuthorized
-					(currentUser, URI);
-			if (authorized) 
-			{
-				chain.doFilter(request,response);
-			}
-			else
-			{
-				String[] details = {"You don't have access to this resource."};
-				returnError(request, response, details);
-			}
-			
+			System.out.println("Authorized: "+authorized);
+			// Write response body.
+			message = "authorization";
+			returnLogin(request, response, message);
 		}
-				
+
+
 	}
-	
+
 }

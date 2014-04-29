@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import com.dhs.portglass.dto.Image;
+import com.dhs.portglass.dto.ImageMessage;
 import com.dhs.portglass.server.DBManager;
 
 public class ImageManager {
@@ -37,18 +38,33 @@ public class ImageManager {
 	 */
 	private static final String GET_IMAGES_BY_TYPE = "SELECT * FROM Image WHERE" +
 			" type = ?";
+	
+	/*
+	 * Retrieve all entries from the 'Image_Entry' database table whose 
+	 * 'image' column matches the provided value. These results will
+	 * be sorted by descending order of the <Date> 'timestamp' column.
+	 */
+	private static final String GET_IMAGE_ENTRIES = "SELECT * FROM image_entry WHERE image = ? " +
+			" ORDER BY timestamp DESC ";
 
 	/*****************************************************
 	 * Queries to create Image data in the database
 	 ****************************************************/
 
 	/*
-	 * Creates a new entry in the account table initialized at every 
+	 * Creates a new entry in the 'Image' table initialized at every 
 	 * column with the provided values.
 	 */
 	private static final String ADD_IMAGE = "INSERT INTO image(name, type, description, " +
 			"size, datecreated, creator, filename) VALUES (?, ?, ?, " +
 			"?, ?, ?, ?)";
+	
+	/*
+	 * Creates a new entry in the 'Image_Entry' table  initialized at
+	 * every column with the provided values.
+	 */
+	private static final String ADD_ENTRY = "INSERT INTO image_entry (author, image, message, " +
+			" timestamp) VALUES (?, ?, ?,?)";
 
 	/*****************************************************
 	 * Queries to update Image data in the database
@@ -110,6 +126,28 @@ public class ImageManager {
 
 
 		return DBManager.update(ADD_IMAGE, statements.toArray());
+	}
+	
+	
+	/**
+	 * Creates a new entry in the 'Image_Entry' database table. 
+	 * Fills each column of this table with the contents of the <ImageMessage>
+	 * DTO. If the query is executed correctly, this method returns true; 
+	 * false otherwise. 
+	 * @param image The <ImageMessage> DTO that will be added to the 
+	 * 'Image_Entry' database table.
+	 * @return A boolean indicating if the query was processed by the 
+	 * database.
+	 */
+	public boolean addImageMessage(ImageMessage message) {		
+
+		ArrayList<Object> statements = new ArrayList<Object>();
+		statements.add(message.getAuthor());
+		statements.add(message.getImage());
+		statements.add(message.getMessage());
+		statements.add(message.getTimestamp());
+		
+		return DBManager.update(ADD_ENTRY, statements.toArray());
 	}
 
 
@@ -213,6 +251,37 @@ public class ImageManager {
 
 		return list;		
 	}
+	
+	/**
+	 * Queries the 'Image_Entry' table of the database for the rows whose 'image'
+	 * column matches the value of the parameter. Results are ordered in accordance
+	 * to the 'timestamp' <Date> column of the 'Image_Entry' table.
+	 * @param query String representation of an attribute to be compared with
+	 * the 'image' column of the database.
+	 * @return An array list of <ImageMessages> masked by <Object>
+	 * filtered by 'image'. Empty if no entries are found or an error occurred.
+	 */
+	public ArrayList<Object> getImageMessages(String query)
+	{
+		ArrayList<Object> list = new ArrayList<Object>();
+
+		list.add(query);
+		ResultSet rs = DBManager.execute(GET_IMAGE_ENTRIES, list.toArray());
+		list.clear();
+		try {
+			while (rs.next())
+			{							
+				list.add(createImageMessageFromRS(rs));
+			}
+		} catch (Exception e ) {
+			e.printStackTrace();
+		}
+
+		return list;		
+	}
+	
+	
+	
 
 	/* *************************************************************************
 	 *
@@ -236,6 +305,29 @@ public class ImageManager {
 			result = new Image(rs.getString(1), rs.getString(2),
 					rs.getString(3), rs.getString(4), rs.getString(5),
 					rs.getString(6), rs.getString(7));
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+
+	}
+	
+
+	/**
+	 * Utility method to add the result set columns to an <ImageMessage> object
+	 * in the respective instance fields.
+	 * @param rs The result set returned from the data base query
+	 * @throws Exception  Occurs when an incorrect index is selected and does not 
+	 * match the <ImageMessage> object types.
+	 * @return An <ImageMessage> object with the information of the DB, null if
+	 * an exception occurs.
+	 */
+	private ImageMessage createImageMessageFromRS(ResultSet rs) {
+		ImageMessage result = null;
+		try {
+			result = new ImageMessage(rs.getString(1), rs.getString(2),
+					rs.getString(3), rs.getString(4));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

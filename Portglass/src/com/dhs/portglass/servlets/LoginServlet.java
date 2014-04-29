@@ -65,14 +65,15 @@ public class LoginServlet extends HttpServlet {
 			Account user = AccountManager.getInstance().getUser(request.getParameter("email"));
 			if (user != null && user.getPassword().equals(request.getParameter("password")))		
 			{
-				
+				/*Save the user in session */
 				HttpSession session = request.getSession();
+				session.setAttribute("user", user);
 				session.setAttribute("authenticated", true);
-				session.setAttribute("user", request.getParameter("email"));
-				session.setAttribute("type", user.getType());
 				
-				// Write response body: SUCCESS.
-				response.getWriter().write("success");
+				
+				
+				/* If fails, hand it back to the request so that it redirects */
+		        response.getWriter().write("success");
 			}
 			// Write response fail: FAILURE. Failed because not same password.
 			else

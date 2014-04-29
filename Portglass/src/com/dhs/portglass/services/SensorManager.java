@@ -1,8 +1,11 @@
 package com.dhs.portglass.services;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import com.dhs.portglass.dto.Sensor;
@@ -27,9 +30,28 @@ public class SensorManager {
 
 	/* 
 	 * Retrieves a sensor entry from the 'Sensor' database table 
+	 * through use of the 'location' column.
+	 */
+	private static final String GET_SENSOR_BY_LOCATION = "SELECT * FROM Sensor WHERE location = ? ";
+	
+	/* 
+	 * Retrieves a sensor entry from the 'Sensor' database table 
+	 * through use of the 'name' column.
+	 */
+	private static final String GET_SENSOR_BY_NAME = "SELECT * FROM Sensor WHERE name = ? ";
+
+	/* 
+	 * Retrieves a sensor entry from the 'Sensor' database table 
 	 * through use of the unique identifier 'serial' column.
 	 */
-	private static final String GET_SENSOR = "SELECT * FROM Sensor WHERE serial = ? ";
+	private static final String GET_SENSOR_BY_SERIAL = "SELECT * FROM Sensor WHERE serial = ? ";
+
+	/* 
+	 * Retrieves a sensor entry from the 'Sensor' database table 
+	 * through use of the 'status' column.
+	 */
+	private static final String GET_SENSOR_BY_STATUS = "SELECT * FROM Sensor WHERE status = ? ";
+
 
 
 	/*****************************************************
@@ -51,6 +73,7 @@ public class SensorManager {
 	 */
 	private static final String ADD_SENSOR_EVENT = "INSERT INTO sensor_entry(sensor_id, " +
 			"details, timestamp, key, date, time) VALUES (?, ?, ?, ?, ?, ? )";
+	
 	/*****************************************************
 	 * Queries to update sensor data in the database
 	 ****************************************************/
@@ -148,6 +171,115 @@ public class SensorManager {
 	 * SELECT METHODS
 	 *
 	 **************************************************************************/
+	
+	/**
+	 * Queries the 'Sensor' table of the database for the rows whose 'location'
+	 * column matches the value of the parameter.
+	 * @param query String representation of an attribute to be compared with
+	 * the 'location' column of the database.
+	 * @return An array list of <Sensor> filtered by 'location'. Empty if no entries
+	 * are found or an error occurred.
+	 */
+	public ArrayList<Object> getSensorsByLocation(String query)
+	{
+		ArrayList<Object> list = new ArrayList<Object>();
+
+		list.add(query);
+		ResultSet rs = DBManager.execute(GET_SENSOR_BY_LOCATION, list.toArray());
+		list.clear();
+		try {
+			while (rs.next())
+			{							
+				list.add(createSensorFromRS(rs));
+			}
+		} catch (Exception e ) {
+			e.printStackTrace();
+		}
+
+		return list;		
+	}
+	
+	/**
+	 * Queries the 'Sensor' table of the database for the rows whose 'location'
+	 * column matches the value of the parameter.
+	 * @param query String representation of an attribute to be compared with
+	 * the 'location' column of the database.
+	 * @return An array list of <Sensor> filtered by 'name'. Empty if no entries
+	 * are found or an error occurred.
+	 */
+	public ArrayList<Object> getSensorsByName(String query)
+	{
+		ArrayList<Object> list = new ArrayList<Object>();
+
+		list.add(query);
+		ResultSet rs = DBManager.execute(GET_SENSOR_BY_NAME, list.toArray());
+		list.clear();
+		try {
+			while (rs.next())
+			{							
+				list.add(createSensorFromRS(rs));
+			}
+		} catch (Exception e ) {
+			e.printStackTrace();
+		}
+
+		return list;		
+	}
+	
+	/**
+	 * Queries the 'Sensor' table of the database for the rows whose 'serial'
+	 * column matches the value of the parameter.
+	 * @param query String representation of an attribute to be compared with
+	 * the 'serial' column of the database.
+	 * @return An array list of <Sensor> filtered by 'serial'. Empty if no entries
+	 * are found or an error occurred.
+	 */
+	public ArrayList<Object> getSensorsBySerial(String query)
+	{
+		ArrayList<Object> list = new ArrayList<Object>();
+
+		list.add(query);
+		ResultSet rs = DBManager.execute(GET_SENSOR_BY_SERIAL, list.toArray());
+		list.clear();
+		try {
+			while (rs.next())
+			{							
+				list.add(createSensorFromRS(rs));
+			}
+		} catch (Exception e ) {
+			e.printStackTrace();
+		}
+
+		return list;		
+	}
+	
+	/**
+	 * Queries the 'Sensor' table of the database for the rows whose 'status'
+	 * column matches the value of the parameter.
+	 * @param query String representation of an attribute to be compared with
+	 * the 'status' column of the database.
+	 * @return An array list of <Sensor> filtered by 'status'. Empty if no entries
+	 * are found or an error occurred.
+	 */
+	public ArrayList<Object> getSensorsByStatus(String query)
+	{
+		ArrayList<Object> list = new ArrayList<Object>();
+
+		list.add(query);
+		ResultSet rs = DBManager.execute(GET_SENSOR_BY_STATUS, list.toArray());
+		list.clear();
+		try {
+			while (rs.next())
+			{							
+				list.add(createSensorFromRS(rs));
+			}
+		} catch (Exception e ) {
+			e.printStackTrace();
+		}
+
+		return list;		
+	}
+	
 
 	/* *************************************************************************
 	 *
@@ -208,7 +340,7 @@ public class SensorManager {
 			connection = DBManager.newConnection();
 			//Verify sensor exists
 			expressions.add(eventData[3]);
-			rs = DBManager.execute(connection, GET_SENSOR, expressions.toArray());
+			rs = DBManager.execute(connection, GET_SENSOR_BY_SERIAL, expressions.toArray());
 			expressions.clear();
 
 			if(rs.next() && rs.isFirst() && rs.isLast())
@@ -220,12 +352,17 @@ public class SensorManager {
 			//Create sensor otherwise
 			else
 			{
+				//Current time
+				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+				Date date = new Date(System.currentTimeMillis());
+				String timestamp = dateFormat.format(date);
+				
 				sensor = new Sensor(eventData[0], eventData[1], eventData[2],
-						System.currentTimeMillis(), "",eventData[3], false);
+						timestamp, "",eventData[3], false);
 				expressions.add(sensor.getName());
 				expressions.add(sensor.getLocation());
 				expressions.add(sensor.getStatus());
-				expressions.add(sensor.getDate_created());
+				expressions.add(sensor.getDateCreated());
 				expressions.add("");
 				expressions.add(sensor.getSerial());
 				expressions.add(false);
@@ -267,10 +404,6 @@ public class SensorManager {
 	}
 
 
-
-
-
-
 	/* *************************************************************************
 	 *
 	 * UTILITY METHODS
@@ -291,7 +424,7 @@ public class SensorManager {
 		Sensor result = null;
 		try {
 			result = new Sensor(rs.getString(1).trim(), rs.getString(2).trim(),
-					rs.getString(3).trim(), rs.getLong(4), rs.getString(5),
+					rs.getString(3).trim(), rs.getString(4), rs.getString(5),
 					rs.getString(6).trim(), rs.getBoolean(7));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

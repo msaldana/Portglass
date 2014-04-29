@@ -15,7 +15,7 @@ import com.dhs.portglass.services.AccountManager;
 /**
  * Servlet implementation class update
  */
-@WebServlet("/update")
+@WebServlet("/s/update")
 public class update extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        

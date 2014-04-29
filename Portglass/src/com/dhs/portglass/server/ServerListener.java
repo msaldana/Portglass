@@ -4,8 +4,6 @@ package com.dhs.portglass.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -13,9 +11,6 @@ import javax.servlet.annotation.WebListener;
 
 
 import com.dhs.portglass.directory.Indexer;
-import com.dhs.portglass.services.AccountManager;
-import com.dhs.portglass.services.MailManager;
-import com.dhs.portglass.services.ThreadPoolManager;
 
 
 /**
@@ -44,9 +39,6 @@ public class ServerListener implements ServletContextListener
 	
 	private static Indexer INDEXER;
 	
-	
-	
-
 	/**
 	 * On Server startup, initializes database variables according to the 
 	 * specified values on the web.xml.
@@ -65,8 +57,7 @@ public class ServerListener implements ServletContextListener
 		
 		IMG_DIR = event.getServletContext().getRealPath("/img/");
 		DATA_DIR = event.getServletContext().getRealPath("/WEB-INF/data/");
-		INDEX_URL = event.getServletContext().getInitParameter("appliation.url");
-		
+		INDEX_URL = event.getServletContext().getInitParameter("appliation.index");
 		
 		
 		try {

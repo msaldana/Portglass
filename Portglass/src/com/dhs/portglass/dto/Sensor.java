@@ -13,7 +13,7 @@ public class Sensor {
 		private String name;
 		private String location;
 		private String status;
-		private long date_created;
+		private String date_created;
 		private String description;
 		private String serial;
 		private boolean isActive;
@@ -24,7 +24,7 @@ public class Sensor {
 		public Sensor(){}
 		
 		public Sensor(String name, String location, String status,
-				long date_created, String description,
+				String date_created, String description,
 				String serial, boolean isActive){
 			this.name = name;
 			this.location = location;
@@ -60,7 +60,7 @@ public class Sensor {
 		/**
 		 * @return the date_created
 		 */
-		public long getDate_created() {
+		public String getDateCreated() {
 			return date_created;
 		}
 
@@ -109,7 +109,7 @@ public class Sensor {
 		/**
 		 * @param date_created the date_created to set
 		 */
-		public void setDate_created(long date_created) {
+		public void setDate_created(String date_created) {
 			this.date_created = date_created;
 		}
 

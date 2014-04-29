@@ -7,28 +7,29 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.dhs.portglass.dto.Account;
+
 /**
  * Servlet implementation class home
  */
 @WebServlet("/home")
 public class RedirectHome extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public RedirectHome() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
+
+	/**
+	 * @see HttpServlet#HttpServlet()
+	 */
+	public RedirectHome() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		System.out.println("entered thru get");
-		System.out.println(request.getSession().getAttribute("user"));
+		doPost(request, response);
 	}
 
 	/**
@@ -36,8 +37,22 @@ public class RedirectHome extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		System.out.println("entered thru post");
-		System.out.println(request.getSession().getAttribute("user"));
+		try{
+			System.out.println("got to this point");
+			Account user = (Account) request.getSession().getAttribute("user");
+			if (user.getType().equals("admin")){
+				System.out.println("here");
+				response.sendRedirect("sa/home.jsp");
+			}
+			if (user.getType().equals("general")){
+				response.sendRedirect("s/home.jsp");
+			}
+		}
+		catch (Exception e){
+			//No user in session - redirect to login page
+			response.sendRedirect("index.jsp");
+		}
+
 	}
 
 }

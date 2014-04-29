@@ -13,11 +13,14 @@ import org.json.JSONObject;
 
 import com.dhs.portglass.dto.Account;
 import com.dhs.portglass.dto.Image;
+import com.dhs.portglass.dto.ImageMessage;
+import com.dhs.portglass.dto.Sensor;
 import com.dhs.portglass.services.AccountManager;
 import com.dhs.portglass.services.ImageManager;
+import com.dhs.portglass.services.SensorManager;
 
 
-@WebServlet("/search")
+@WebServlet("/s/search")
 /**
  * Invokes by a client-side request to search for information.
  * Receives a filter and a query as parameters to the POST 
@@ -58,8 +61,9 @@ public class SearchServlet extends HttpServlet {
 		ArrayList<Object> list = new ArrayList<Object>();
 		int filter; 
 		String query;
-		//String type = (String) request.getSession().getAttribute("type");
-		String type = "admin";
+		String type = (String) request.getSession().getAttribute("type");
+		String user = ((Account) request.getSession().getAttribute("user")).getEmail();
+		
 
 
 		if(request.getParameter("filter")==null || request.getParameter("filter").equals("null"))
@@ -92,7 +96,18 @@ public class SearchServlet extends HttpServlet {
 		break;
 		case 7:  list = ImageManager.getInstance().getImagesByType(query);
 		break;
-
+		case 8:  list = ImageManager.getInstance().getImageMessages(query);
+		break;
+		case 9:  list = ImageManager.getInstance().getImagesByCreator(user);
+		break;
+		case 10: list = SensorManager.getInstance().getSensorsByLocation(query);
+		break;
+		case 11: list = SensorManager.getInstance().getSensorsByName(query);
+		break;
+		case 12: list = SensorManager.getInstance().getSensorsBySerial(query);
+		break;
+		case 13: list = SensorManager.getInstance().getSensorsByStatus(query);
+		break;
 		default:  break;
 		}
 
@@ -118,7 +133,7 @@ public class SearchServlet extends HttpServlet {
 				}
 				json.put("accounts", items);
 			}
-			if (filter>4 && filter<8){
+			if ((filter>4 && filter<8)|| filter==9){
 				for (int i=0 ; i<list.size() ; i++)
 				{
 					/* Seperate Date Created by Date / Time */
@@ -138,6 +153,42 @@ public class SearchServlet extends HttpServlet {
 				}
 				json.put("images", items);
 			}
+			if (filter==8){
+				for (int i=0 ; i<list.size() ; i++)
+				{
+					
+					jsonObjectList = new JSONObject();
+					jsonObjectList.put("author"     , ((ImageMessage) list.get(i)).getAuthor());
+					jsonObjectList.put("message" , ((ImageMessage) list.get(i)).getMessage());
+					jsonObjectList.put("date"    , ((ImageMessage) list.get(i)).getTimestamp().toString());
+					
+					items.put(jsonObjectList);
+				}
+				json.put("imessages", items);
+			}
+			
+			if (filter>9 && filter<14){
+				for (int i=0 ; i<list.size() ; i++)
+				{
+					/* Seperate Date Created by Date / Time */
+					String[] timestamp = ((Image) list.get(i)).getDateCreated().split(" ");
+					
+					jsonObjectList = new JSONObject();
+					jsonObjectList.put("name"     , ((Sensor) list.get(i)).getName());
+					jsonObjectList.put("location" , ((Sensor) list.get(i)).getLocation());
+					jsonObjectList.put("status"    , ((Sensor) list.get(i)).getDescription());
+					jsonObjectList.put("description"     , ((Sensor) list.get(i)).getDateCreated());
+					jsonObjectList.put("datecreated"    , timestamp[0]);
+					jsonObjectList.put("serial", timestamp[1]);
+					
+					items.put(jsonObjectList);
+				}
+				json.put("images", items);
+			}
+			
+			
+			
+			
 		}
 		catch (Exception ex) {
 

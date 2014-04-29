@@ -20,7 +20,7 @@ import com.dhs.portglass.dto.Account;
 public class AuthorizationManager 
 {
 	private static final AuthorizationManager INSTANCE = new AuthorizationManager();
-	
+	private static final String PROPERTIES = "/Users/Manuel/git/Portglass/Portglass/WebContent/WEB-INF/mapping.properties";
 
 	/**
 	 * Returns only one instance of the Authorization Manager to the 
@@ -28,13 +28,13 @@ public class AuthorizationManager
 	 * remains a singleton.
 	 * @return
 	 */
-   public static synchronized final AuthorizationManager getInstance() {
-           return AuthorizationManager.INSTANCE;
-   }
-	
-	
+	public static synchronized final AuthorizationManager getInstance() {
+		return AuthorizationManager.INSTANCE;
+	}
+
+
 	private Properties roleMappings;
-	
+
 	/**Load mappings from a properties file on the file system.*/
 	private AuthorizationManager()
 	{
@@ -42,16 +42,15 @@ public class AuthorizationManager
 		this.roleMappings = new Properties();
 		try
 		{
-			this.roleMappings.load(new FileInputStream( System
-					.getProperty("file.separator")+ "mapping.properties"));
+			this.roleMappings.load(new FileInputStream(PROPERTIES));
 		}
 		catch (Exception e)
 		{
 			throw new RuntimeException(e);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Verifies that the user is authorized to access the 
 	 * resource.
@@ -62,24 +61,40 @@ public class AuthorizationManager
 	 */
 	public boolean isAuthorized(Account user, String uri) {
 		boolean matchFound = false;
-		boolean authorized = false;
+		boolean authorized = true;
+
 		
-		@SuppressWarnings("rawtypes")
-		Iterator i = roleMappings.entrySet().iterator();
-		//Loop through roles, if a match is found or finished
-		//iterating the file, then exit.
-		while((!authorized) && (i.hasNext()))
-		{
+			System.out.println("checking user");
 			@SuppressWarnings("rawtypes")
-			Map.Entry me = (Map.Entry) i.next();
-			//Pattern match. Use '*' to represent any ASCII character.
-			String mapPattern = ((String)me.getValue()).replaceAll("\\*",".*");
-			matchFound = Pattern.matches(mapPattern,  uri);
-			if (matchFound && user.getType().equals(me.getKey()))
+			Iterator i = roleMappings.entrySet().iterator();
+			//Loop through roles, if a match is found or finished
+			//iterating the file, then exit.
+			while((i.hasNext()))
 			{
-				authorized = true;
+				@SuppressWarnings("rawtypes")
+				Map.Entry me = (Map.Entry) i.next();
+				//Pattern match. Use '*' to represent any ASCII character.
+				String mapPattern = ((String)me.getValue()).replaceAll("\\*",".*");
+				matchFound = Pattern.matches(mapPattern,  uri);
+				if (matchFound && user ==null)
+				{
+					System.out.println("null user");
+					authorized = false;
+				}
+				else if (matchFound && user != null)
+				{
+					System.out.println("user type is:"+user.getType()+".");
+					System.out.println("entry:"+me.getKey().toString()+".");
+					
+					if (!me.getKey().toString().equals(user.getType())){
+						authorized = false;
+					}
+					if (me.getKey().toString().equals("general") && user.getType().equals("admin")){
+						authorized = true;
+					}
+				}
 			}
-		}
+		
 		return authorized;
 	}
 }

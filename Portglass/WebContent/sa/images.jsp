@@ -118,7 +118,7 @@
 
 			<section class="grid col-three-quarters mq2-col-full">
 
-				<div class="grid-wrap">
+				<div id="grid-section" class="grid-wrap">
 					<section id="image-search-tool">
 						<article id="results" class="grid col-full">
 							<h2 id="toolTitle">Image Management</h2>
@@ -169,8 +169,49 @@
 							</form>
 						
 					</section>
-
-
+					
+					
+					<section id="comment-section" style='display: none'
+						class="grid col-three-quarters mq2-col-two-thirds mq3-col-full"> 
+						<div class="grid-wrap">
+							<article class="post post-single">
+								<h2><a  id="iname" class="post-title"></a></h2>
+								<div class="meta">
+									<p>Created on <span id="idate" class="time"></span> by <a  id= "icreator" class="fn"></a>.</p>
+									<p>Type: <span id="itype" ></span></p>
+								</div>
+								<div class="entry">
+									<p> <img id="iimage" class="standard aligncenter" ></p>
+									<p id="idescription"></p>
+								</div>
+							</article>
+							
+							<section id="cresults" class="section-comment">
+								<header>
+									<hr>
+									<h5 class="fleft">Comments</h5> <p class="fright"><a href="#leave-comment" class="arrow">Leave your comment</a></p>
+								</header>
+								<ol id="comment-results" class="comments">
+								</ol>
+					
+							</section>
+					
+							<div class="leavecomment" id="leavecomment">
+								<h3>Leave your comment</h3>
+									<form id="comment-form">
+										<ul>											
+											<li>
+												<label for="leave-comment">Message:</label>
+												<textarea id="leave-comment" cols="100" rows="6" required maxlength="300"  class="required" ></textarea>
+											</li>
+											<li>
+												<button type="submit" id="submit" class="button fright">Send it</button>
+											</li>	
+										</ul>			
+									</form>
+							</div>
+						</div>
+					</section>
 
 				</div>
 				<!-- 100%articles-->

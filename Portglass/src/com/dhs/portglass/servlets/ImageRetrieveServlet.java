@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 
 //this to be used with Java Servlet 3.0 API
 @MultipartConfig 
-@WebServlet("/image")
+@WebServlet("/s/image")
 /**
  * Invoked from client-side when an image is desired to be
  * shown in the main application. Receives type and file 

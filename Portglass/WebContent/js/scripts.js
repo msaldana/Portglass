@@ -34,23 +34,23 @@ $(document).ready(function() {
 	};
 
 	$('.toggle-view li').click(function () {
-	    var text = $(this).children('.toggle');
-	    
-	    if (text.is(':hidden')) {
-	        text.slideDown('fast');
-	        $(this).children('.toggle-title').addClass('tactive');      
-	    } else {
-	        text.slideUp('fast');
-	        $(this).children('.toggle-title').removeClass('tactive');       
-	    }       
-	});
-	
-	
-				
-				
-				
+		var text = $(this).children('.toggle');
 
-			
+		if (text.is(':hidden')) {
+			text.slideDown('fast');
+			$(this).children('.toggle-title').addClass('tactive');      
+		} else {
+			text.slideUp('fast');
+			$(this).children('.toggle-title').removeClass('tactive');       
+		}       
+	});
+
+
+
+
+
+
+
 
 
 	if (jQuery().flexslider) {
@@ -99,7 +99,7 @@ $(document).ready(function() {
 		 * elements are result containers made to the Portglass Service:
 		 * Applicable to account, image, sensor, notification queries. 
 		 */
-		$('#results-section').on('click', '.resultChild',function(){
+		$('#grid-section').on('click', '.resultChild',function(){
 			/* 
 			 * $(this) represents an <h5> element used as a title
 			 * to the result container. Calling parent, therefore 
@@ -159,7 +159,7 @@ $(document).ready(function() {
 			//Fetch JSON information for the Search: filter refers to current 
 			//selected search filter.
 			var filter = $("input[name='searchRadio']:checked").val(); 
-			$.getJSON("./../search",
+			$.getJSON("../s/search",
 					{
 				filter: filter,
 				query : $('#search').val(),
@@ -279,7 +279,7 @@ $(document).ready(function() {
 
 			container = $(this).closest(".result-entry");
 			var emailLabel = container.find(".result-email").text().split(': ')[1];
-			$.post("./../update",
+			$.post("../s/update",
 					{
 				email: emailLabel,
 				value: emailLabel,
@@ -292,7 +292,6 @@ $(document).ready(function() {
 						container.remove();
 
 					});
-
 
 			return false;
 
@@ -556,7 +555,7 @@ $(document).ready(function() {
 				'</label>');
 				var emailLabel = container.find(".result-email").text().split(': ')[1];
 
-				$.post("./../update",
+				$.post("../s/update",
 						{
 					email: emailLabel,
 					value: input.val(),
@@ -589,7 +588,7 @@ $(document).ready(function() {
 				'</label>');
 				var emailLabel = container.find(".result-email").text().split(': ')[1];
 
-				$.post("./../update",
+				$.post("../s/update",
 						{
 					email: emailLabel,
 					value: input.val(),
@@ -621,7 +620,7 @@ $(document).ready(function() {
 						'<img src=\'../img/loader.gif\'/>Saving changes... '+
 				'</label>');
 				var emailLabel = container.find(".result-email").text().split(': ')[1];
-				$.post("./../update",
+				$.post("../s/update",
 						{
 					email: emailLabel,
 					value: input.val(),
@@ -654,7 +653,7 @@ $(document).ready(function() {
 						'<img src=\'../img/loader.gif\'/>Saving changes... '+
 				'</label>');
 				var emailLabel = container.find(".result-email").text().split(': ')[1];
-				$.post("./../update",
+				$.post("../s/update",
 						{
 					email: emailLabel,
 					value: input.val(),
@@ -685,7 +684,7 @@ $(document).ready(function() {
 					'<img src=\'../img/loader.gif\'/>Saving changes... '+
 			'</label>');
 			var emailLabel = container.find(".result-email").text().split(': ')[1];
-			$.post("./../update",
+			$.post("../s/update",
 					{
 				email: emailLabel,
 				value: input.val(),
@@ -710,6 +709,23 @@ $(document).ready(function() {
 		 *    IMAGE SEARCH METHODS
 		 * -------------------------------------*/
 
+		function resetImagePage(){
+			//delete all previous children results
+			$('#results > ul').empty();
+			$('#image-search-tool').hide();
+			//hide upload-image form if shown
+			$('#upload-section').hide();
+			$('image-name').val("");
+			$('image-description').val("");
+			/* hide my images and all search items */
+			$('#owner-section').hide();
+			$('#myimages').empty();
+			/* hide image-view and comment section */
+			$('#comment-section').hide();
+			$('#comment-results').empty();
+			$('#leave-comment').val("");
+
+		}
 
 		/**
 		 * Invoked when a submit is done on the search field of the
@@ -719,11 +735,9 @@ $(document).ready(function() {
 		 * and writes the results on the page.
 		 */
 		$('#image-search-form').submit(function(){
-			//delete all previous children results
-			$('#results > ul').empty();
-			//hide create-account form if shown
-			$('#upload-section').hide();
-			
+
+			resetImagePage();
+			$('#image-search-tool').show();
 
 			//append a search animation to alert the user 
 			//the query is being done.
@@ -733,7 +747,7 @@ $(document).ready(function() {
 			//Fetch JSON information for the Search: filter refers to current 
 			//selected search filter.
 			var filter = $("input[name='searchRadio']:checked").val(); 
-			$.getJSON("./../search",
+			$.getJSON("../s/search",
 					{
 				filter: filter,
 				query : $('#search').val(),
@@ -756,23 +770,26 @@ $(document).ready(function() {
 									images.type+'</span>'+
 									'</h5>'+
 									'<div class="toggle grid-wrap">'+
-									'<ul class="grid col-two-thirds mq3-col-full">'+
-									'<li>Description</li>'+
-									'<li>'+images.description+'</li>'+
-									'</ul>'+
 									'<ul class="grid col-one-third mq3-col-full">'+
-									'<li> <img class="thumb" src="./../image?file='+images.filename+'&&type=3"> </li>'+
-									'<li >Name: '+images.name+'</li>'+
-									'<li >Owner: '+images.creator+'</li>'+
-									'<li >Created: '+images.datecreated+'</li>'+
-									'<li >At: '+images.timeCreated+'</li>'+
-									'<li >Type: '+images.type+'</li>'+
-									'<li><a href=".././view?filter=1&&value='+images.filename+'">Go to Image</a></li>'+
-			
+									'<li><a class ="image-view"> <img class="thumb" src="../s/image?file='+images.filename+'&&type=3"></a> </li>'+
+									'<li class="image-name">Name: '+images.name+'</li>'+
+									'<li class="image-creator">Owner: '+images.creator+'</li>'+
+									'<li class="image-date">Created: '+images.datecreated+'</li>'+
+									'<li class="image-type" >Type: '+images.type+'</li>'+
+									'<li class="image-filename" style="display: none">'+images.filename+'</li>'+
+
 									'</ul>'+
-									
+
+
+									'<ul class="grid col-two-thirds mq3-col-full ">'+
+									'<li><a class="image-view">Go to Image</a></li>'+
+
+									'<li class="image-description">Description: '+images.description+'</li>'+
+									'</ul>'+
+
+
 							'</div></li>');	
-							
+
 						});
 						//Remove load when results finish loading.
 						$('#load').remove();
@@ -818,6 +835,73 @@ $(document).ready(function() {
 			// Make sure the submit does not reload page.
 			return false;
 		});
+
+
+		$('#grid-section').on('click', '.image-view', function(){
+
+			var container = $(this).closest("div");
+
+			var nameLabel = container.find(".image-name").text().split(': ')[1];
+			var creatorLabel = container.find(".image-creator").text().split(': ')[1];
+			var dateLabel = container.find(".image-date").text().split(': ')[1];
+			var typeLabel = container.find(".image-type").text().split(': ')[1];
+			var descLabel = container.find(".image-description").text().split(': ')[1];
+			var filenameLabel = container.find(".image-filename").text();
+
+			resetImagePage();
+			/* prepare to load image-view and comments */
+			$('#comment-section').show();
+
+			$('#iname').text(nameLabel);
+			$('#icreator').text(creatorLabel);
+			$('#idate').text(dateLabel);
+			$('#itype').text(typeLabel);
+			$('#idescription').text(descLabel);
+			$('#iimage').attr("src", "../s/image?file="+filenameLabel+"&&type=2");
+
+			$('#comment-results').children().append('<label id="load" class="load"  >'+
+					'<img src="../img/loader.gif"/> Searching for comments ...'+
+			'</label>');
+
+			commentReload(nameLabel);
+
+		});
+		
+		function commentReload(image){
+			$('#comment-results').empty();
+			
+			$('#cresults').append('<label id="load" class="load"  >'+
+					'<img src="../img/loader.gif"/> Loading comments ...'+
+			'</label>');
+			
+			$.getJSON("../s/search",
+					{
+				filter: '8',
+				query : image,
+
+					})
+					.done(function(data)
+							{
+						var results = 0;
+						// for each JSON result, append a children container
+						// to the result section
+						$.each(data.imessages, function(i, imessages){
+							results ++;
+
+							children = $('#cresults > ol');
+
+							children.append(
+									'<li class="comment">'+
+									'<h6>'+imessages.author+'<span class="meta"> on '+imessages.date+'</span></h6>'+
+									'<p>'+imessages.message +'</p>'+
+							'</li>');	
+
+						});
+
+							});
+			//Remove the loading sign
+			$('#load').remove();
+		}
 
 
 
@@ -925,19 +1009,94 @@ $(document).ready(function() {
 
 		$('#do-image-upload').click(function(){
 
-			$('#results-section').empty();
-			$('#image-search-tool').hide();
-			
-			$('#myImages-section').empty();
-			$('#owner-section').hide();
-
-			$('#image-name').val("");
-			$('#image-description').val("");
+			resetImagePage();
 			$('#upload-section').show();
 
 		});
 
+		$('#do-my-images').click(function(){
+			resetImagePage();
+			 $('#owner-section').show();
+			 
+			//append a search animation to alert the user 
+				//the query is being done.
+				$('#owner-section > ul').append('<label id="load" class="load"  >'+
+						'<img src="../img/loader.gif"/> Searching for your Images ...'+
+				'</label>');
+				//Fetch JSON information for the Search: filter refers to current 
+				//selected search filter 
+				$.getJSON("../s/search",
+						{
+					filter: '9',
+					
 
+						})
+						.done(function(data)
+								{
+							var results = 0;
+							// for each JSON result, append a children container
+							// to the result section
+							$.each(data.images, function(i, images){
+								results ++;
+
+								children = $('#owner-section > ul');
+
+								children.append(
+										'<li class="result-entry">'+
+										'<h5 class="toggle-title resultChild">Image Name: '+ images.name +
+										'<span class="toggle-title-detail resultChild">-'+
+										images.type+'</span>'+
+										'</h5>'+
+										'<div class="toggle grid-wrap">'+
+										'<ul class="grid col-one-third mq3-col-full">'+
+										'<li><a class ="image-view"> <img class="thumb" src="../s/image?file='+images.filename+'&&type=3"></a> </li>'+
+										'<li class="image-name">Name: '+images.name+'</li>'+
+										'<li class="image-creator">Owner: '+images.creator+'</li>'+
+										'<li class="image-date">Created: '+images.datecreated+'</li>'+
+										'<li class="image-type" >Type: '+images.type+'</li>'+
+										'<li class="image-filename" style="display: none">'+images.filename+'</li>'+
+
+										'</ul>'+
+
+
+										'<ul class="grid col-two-thirds mq3-col-full ">'+
+										'<li><a class="image-view">Go to Image</a></li>'+
+
+										'<li class="image-description">Description: '+images.description+'</li>'+
+										'</ul>'+
+
+
+								'</div></li>');	
+
+							});
+							//Remove load when results finish loading.
+							$('#load').remove();
+
+							//No Results, alert user.
+							if (results == 0){
+								
+									$('#results > ul').append(
+											'<a> You have not uploaded any images.</a>');	
+								
+								
+
+							}
+
+
+								}).fail(function (){
+									// On fail still remove the loading element
+									$('#load').remove();
+									// Alert error. 
+									$('#results > ul').append(
+											'<a id="errorMessage" class="error">Service Unavailable.</a>'+
+									'<a> Please contact support at support.portglass@gmail.com </a>');
+
+								});	
+				// Make sure the submit does not reload page.
+				return false;
+			 
+
+		});
 
 
 
@@ -1022,6 +1181,87 @@ $(document).ready(function() {
 
 			},
 		});
+		
+		
+		$("#re_login_form").validate({
+
+			submitHandler: function(form) {
+				//Retrieve Salt for user
+				var salt;
+				//Hold Encrypted Password Value
+				var encryptedPass="";
+				//Hold email value
+				//Start Loading Message
+				$('#load').show();
+				//Boolean stating if salt was retrieved.
+				var isSaltRetrieved = false;
+				//Remove previous error messages.
+				$( "#errorMessage" ).remove();
+				$( "#errorMessageSolution" ).remove();
+
+				//Look for the user email's Salt.
+				$.post(".././userSalt",
+						{
+					email: $('#email').val(),
+
+						},
+						function(data,status)
+						{
+							if ($.trim(data) != 'failure'){
+								salt = data+"";
+
+								//Encrypt Password Field
+
+								encryptedPass = ( CryptoJS.PBKDF2($('#password').val(),
+										salt, { keySize: 512/32, iterations: 1000 }))+"";
+								isSaltRetrieved = true;
+							}
+							else{
+								$('#load').hide();
+								$('#error').append('<a id="errorMessage" class="error">The email address '+
+								'you entered is not registered.</a>');
+								$('#error').append('<a id="errorMessageSolution" href='+
+								'"../register.jsp">Register Now! </a>');
+								$('#error').show();
+
+							}
+
+						}
+				)//Execute .done when finished reading from Servlet
+				.always(function(){
+
+					// Attempt Login with Encrypted Pass if salt was retrieved
+					if(isSaltRetrieved)
+					{
+						$.post(".././login",
+								{
+							email: $('#email').val(),
+							password: encryptedPass
+								}, 
+								function(data, status){
+									if ($.trim(data) == 'success'){
+										$('#load').hide();
+										window.location.href = ".././home";
+									}
+									if ($.trim(data) == 'failure'){
+								
+										$('#load').hide();
+										$('#error').append('<a id="errorMessage" class="error">The credentials '+
+										'you entered are incorrect.</a>');
+										$('#error').append('<a id="errorMessageSolution" href='+
+										'"../recovery.jsp">Forgot Password? </a>');
+										$('#error').show();
+
+									}
+								});
+
+					}
+				});
+
+			},
+		});
+		
+		
 
 
 
@@ -1232,72 +1472,120 @@ $(document).ready(function() {
 		});
 
 
-		//Validation for Image Form
-		$("#upload-section").on('click', '#upload_button', function(){
-
-			
-			
-			
-			
-			$("#file_upload_form").validate({
-				rules: {
 
 
-				},
 
-				messages: {
-					email: {
-						required: "This field is required",
-					}
-				},
 
-				submitHandler: function(form) {
-					/* show loader and hide form while adding */
-					$("#upload-section").after('<label id="load" class="load"  >'+
-							'<img src="../img/loader.gif"/> Uploading Image ...'+
-					'</label>');
-					$('#upload-section').hide();
 
-					$.get(".././upload",
-							{
-						image_name: $('#image-name').val(),
-						image_type: $('#type-select').val(),
-						image_description: $('#image-description').val(),
-							},
-							function(data,status)
-							{
-								$('#image-search-tool').show();
-								document.getElementById("frame-section").contentDocument
-								.location.reload(true);
-								if ($.trim(data) == 'noimage'){
-									$('#load').remove();
-									alert('no image');
-								}	
-								else if ($.trim(data) == 'false'){
-									// Reset all form Values
-									alert('failed');
-									$('#load').remove();
-									$(this).find("#load").remove();
-								}	
-								else {
-									
-									$('#load').remove();
-									$(this).find("#load").remove();
-									// Hide form and return to search section
-									$('#results').show();
-																	
-								}
-							
+
+		$("#file_upload_form").validate({
+			rules: {
+
+
+			},
+
+			messages: {
+				email: {
+					required: "This field is required",
+				}
+			},
+
+			submitHandler: function(form) {
+				/* show loader and hide form while adding */
+				$("#upload-section").after('<label id="load" class="load"  >'+
+						'<img src="../img/loader.gif"/> Uploading Image ...'+
+				'</label>');
+				$('#upload-section').hide();
+
+				$.get("../s/upload",
+						{
+					image_name: $('#image-name').val(),
+					image_type: $('#type-select').val(),
+					image_description: $('#image-description').val(),
+						},
+						function(data,status)
+						{
+							$('#image-search-tool').show();
+							document.getElementById("frame-section").contentDocument
+							.location.reload(true);
+							if ($.trim(data) == 'noimage'){
+								$('#load').remove();
+								alert('no image');
+							}	
+							else if ($.trim(data) == 'false'){
+								// Reset all form Values
+								alert('failed');
+								$('#load').remove();
+								$(this).find("#load").remove();
+							}	
+							else {
+
+								$('#load').remove();
+								$(this).find("#load").remove();
+								// Hide form and return to search section
+								$('#results').show();
 
 							}
-					).fail(function(err, status)
-							{
-						// something went wrong, check err and status
-							}
-					);
-				},
 
-			});
+
+						}
+				).fail(function(err, status)
+						{
+					// something went wrong, check err and status
+						}
+				);
+			},
+
+		});
+
+		
+		$("#comment-form").validate({
+			rules: {
+
+
+			},
+
+			messages: {
+				email: {
+					required: "This field is required",
+				}
+			},
+
+			submitHandler: function(form) {
+				/* show loader and hide form while adding */
+				$("#comment-results").after('<label id="load" class="load"  >'+
+						'<img src="../img/loader.gif"/> Submitting Comment ...'+
+				'</label>');
+				$('#comment-results').hide();
+
+				$.post("../s/post",
+						{
+					image: $('#iname').text(),
+					message: $('#leave-comment').val(),
+					
+						},
+						function(data,status)
+						{
+							if ($.trim(data) == 'true'){
+								$('#load').remove();
+								$('#comment-results').show();
+								commentReload($('#iname').text());
+							}
+							else{
+								$('#load').remove();
+								alert('server unavailable');
+								$('#comment-results').show();
+							}
+						}
+				).fail(function(err, status)
+						{
+					// something went wrong, check err and status
+						}
+				);
+				$('#leave-comment').val("");
+				return false;
+			},
+
 		});
 
 

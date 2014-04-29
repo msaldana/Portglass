@@ -1,10 +1,14 @@
 
 <% 
-if(session.getAttribute("user")!=null && session.getAttribute("authenticated").equals(true))
-{
-   response.sendRedirect("./home");
-}
 
+
+String message = "";
+if(request.getAttribute("error")!=null)
+{
+	Object errorMessage =  request.getAttribute("error");
+	message = (String) errorMessage;
+
+}
 %>
 
 <!DOCTYPE html>
@@ -23,7 +27,7 @@ if(session.getAttribute("user")!=null && session.getAttribute("authenticated").e
 
 	<meta name="viewport" content="width=device-width">
 	
-	<meta name="description" content="Portglass Login View, Index">
+	<meta name="description" content="Portglass Login View">
 	<meta name="author" content="Manuel R Saldana">
 	
 	<title>Welcome to Portglass!</title>
@@ -32,7 +36,7 @@ if(session.getAttribute("user")!=null && session.getAttribute("authenticated").e
 	
 	
 	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="../css/style.css">
 	
 	<!--[if lt IE 9]>
 	<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -46,22 +50,22 @@ if(session.getAttribute("user")!=null && session.getAttribute("authenticated").e
 <div class="container">
 
 	<header id="navtop">
-		<a href="index.jsp" class="logo fleft">
-			<img src="img/logo.png" alt="Designa Studio">
+		<a href="../index.jsp" class="logo fleft">
+			<img src="../img/logo.png" alt="Designa Studio">
 		</a>
 		
 		<nav class="fright">
 			<ul>
-				<li><a href="index.jsp" class="navactive">Home</a></li>
+				<li><a href="../index.jsp" class="navactive">Home</a></li>
 			</ul>
 			<ul>
-				<li><a href="register.jsp">Register</a></li>
+				<li><a href="../register.jsp">Register</a></li>
 			</ul>
 			<ul>
-				<li><a href="recovery.jsp">Account Recovery</a></li>
+				<li><a href="../recovery.jsp">Account Recovery</a></li>
 			</ul>
 			<ul>
-				<li><a href="about.jsp">About</a></li>
+				<li><a href="../about.jsp">About</a></li>
 			</ul>
 		</nav>
 	</header>
@@ -72,7 +76,7 @@ if(session.getAttribute("user")!=null && session.getAttribute("authenticated").e
 		<header class="grid col-full">
 			<hr>
 			<p class="fleft">Home</p>
-			<a href="about.jsp" class="arrow fright">see more info</a>
+			<a href="../about.jsp" class="arrow fright">see more info</a>
 		</header>
 		
 		<div class="grid col-one-half mq2-col-full">
@@ -87,8 +91,13 @@ if(session.getAttribute("user")!=null && session.getAttribute("authenticated").e
 			
 	
 		 <div class="grid col-one-half mq2-col-full">
-		   <form id="login_form" class="login_form" name="login_form">
-		   	
+		   <form id="re_login_form" class="login_form" name="login_form">
+		   		<% if (!message.isEmpty() && message.equals("authorization")){ %>	
+		   			<p class="warning">Please login to continue using the Portglass System.</p>
+		   		<%} else if (!message.isEmpty() && message.equals("filter")){ %>
+		   			<p class="warning">Authorization filter is not properly configured
+		   			 please contact administrator.</p>
+		   		<%} %>
 				<ul>
 					<li>
 						<label for="email">Username:</label>
@@ -101,7 +110,7 @@ if(session.getAttribute("user")!=null && session.getAttribute("authenticated").e
 						<input type="password" class="password" name="password" id="password"
 						 minlength="6" required >
 						<label id="load" class="load" style='display:none'>
-  							<img src='img/loader.gif'/> Attempting Login ...
+  							<img src='../img/loader.gif'/> Attempting Login ...
 						</label>
 						<label id="error" class="error"></label>
 						
@@ -133,10 +142,10 @@ if(session.getAttribute("user")!=null && session.getAttribute("authenticated").e
 		
 		<nav class="grid col-one-third ">
 			<ul>
-				<li><a href="index.jsp">Login</a></li>
-				<li><a href="register.jsp">Register</a></li>
-				<li><a href="recovery.jsp">Account Recovery</a></li>
-				<li><a href="about.jsp">About</a></li>
+				<li><a href="../index.jsp">Login</a></li>
+				<li><a href="../register.jsp">Register</a></li>
+				<li><a href="../recovery.jsp">Account Recovery</a></li>
+				<li><a href="../about.jsp">About</a></li>
 			</ul>
 		</nav>
 	</footer>
@@ -152,9 +161,9 @@ if(session.getAttribute("user")!=null && session.getAttribute("authenticated").e
 <script src="js/selectivizr.js"></script>
 <![endif]-->
 
-<script src="js/jquery.flexslider-min.js"></script>
-<script src="js/scripts.js"></script>
-<script src="js/jquery.validate.min.js"></script>
+<script src="../js/jquery.flexslider-min.js"></script>
+<script src="../js/scripts.js"></script>
+<script src="../js/jquery.validate.min.js"></script>
 <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/pbkdf2.js"></script>
 
 

@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.dhs.portglass.IO.ImageTools;
 import com.dhs.portglass.IO.MultipartRequestHandler;
+import com.dhs.portglass.dto.Account;
 import com.dhs.portglass.dto.FileMeta;
 import com.dhs.portglass.dto.Image;
 import com.dhs.portglass.services.ImageManager;
@@ -22,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 //this to be used with Java Servlet 3.0 API
 @MultipartConfig 
-@WebServlet("/upload")
+@WebServlet("/s/upload")
 /**
  * Builds on JQuery File Upload and Apache File Upload APIs.
  * Files that are added in a session through the use of this
@@ -51,14 +52,7 @@ public class FileUploadServlet extends HttpServlet {
 
 	private static int MAX_FILES = 1; 
 
-	/*
-	 * Location of Image Directories
-	 */
-	private static final String STORE_DIR_STANDARD  = "/standard/";
-	private static final String STORE_DIR_THUMBNAIL = "/thumbnail/";
-	private static final String STORE_DIR_ORIGINAL  = "/original/";
-
-
+	
 	/**
 	 * Uploads an image <InputStream> located in the <FileMeta> files
 	 * list of this class. The <InputStream> is processed by <ImageTools>
@@ -79,7 +73,7 @@ public class FileUploadServlet extends HttpServlet {
 		String name        = request.getParameter("image_name");
 		String type        = request.getParameter("image_type");
 		String description = request.getParameter("image_description");
-		String creator     = "manuel.saldana@upr.edu";
+		String creator     = ((Account) request.getSession().getAttribute("user")).getEmail();
 		String result = "false";
 
 		/* Add this for multi-file processing */

@@ -111,7 +111,7 @@
 
 			<section class="grid col-three-quarters mq2-col-full">
 
-				<div class="grid-wrap">
+				<div id="grid-section" class="grid-wrap">
 					
 					<article  id="results" class="grid col-full">
 						<h2 id="toolTitle">Account Management</h2>
