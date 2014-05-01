@@ -22,6 +22,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -256,17 +259,20 @@ public class Indexer {
 			try {
 				int hashCode = getHashCode(file);
 				
-				long modifiedTime = 0;
+				//Current time
+				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+				Date date = new Date(System.currentTimeMillis());
+				String timestamp = dateFormat.format(date);
 				
 				if (action == ADD || action == MODIFY) {
 					String name = file.getFileName().toString();
 					// Strip last four characters (.txt)
 					name = name.substring(0, name.length()-4);
-					modifiedTime = Files.getLastModifiedTime(file).toMillis();
+					long modifiedTime = Files.getLastModifiedTime(file).toMillis();
 					indexCache.put(hashCode, modifiedTime);
 					String[] parsedFileContents = PropertyConfig.loadProperties(file.toFile());
 					SensorManager.getInstance().indexAddEvent(parsedFileContents,
-							hashCode, modifiedTime);
+							hashCode, timestamp);
 					
 				} else if (action == DELETE) {
 					SensorManager.getInstance().indexDeleteEvent(hashCode);

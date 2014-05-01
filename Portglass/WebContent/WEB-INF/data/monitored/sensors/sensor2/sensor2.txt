@@ -1,0 +1,7 @@
+sensor.name=CID SENSOR 2
+sensor.status=Offline
+sensor.serial=QTR23X67
+sensor.location=RUM@Mayaguez
+sensor.details=Sensor Shut Off for Maintenance
+sensor.date=4/4/2014
+sensor.time=9:00

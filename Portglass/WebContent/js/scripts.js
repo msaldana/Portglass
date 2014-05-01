@@ -816,7 +816,7 @@ $(document).ready(function() {
 							else {
 
 								$('#results > ul').append(
-										'<a> Unespected filter for the value: '+$('#search').val()+
+										'<a> Unexpected filter for the value: '+$('#search').val()+
 								'.</a>');
 							};
 
@@ -864,6 +864,23 @@ $(document).ready(function() {
 			'</label>');
 
 			commentReload(nameLabel);
+			
+			$.post("../s/verify",
+					{
+				value: nameLabel,
+				filter: '1'
+					},
+					function(data,status)
+					{
+						if (data == 'true'){
+							$('#ifollow').prop('checked',true);
+						}
+					}
+			).fail(function(err, status)
+					{
+				// something went wrong, check err and status
+					}
+			);
 
 		});
 		
@@ -901,13 +918,313 @@ $(document).ready(function() {
 							});
 			//Remove the loading sign
 			$('#load').remove();
+			
+			
 		}
 
+		
+		
+		
+		
+		
+		/* -------------------------------------
+		 * SEARCH RESULT METHODS - SUB SECTION
+		 *    SENSOR SEARCH METHODS
+		 * -------------------------------------*/
+		
+		
+		function resetSensorPage(){
+			//delete all previous children results
+			$('#results > ul').empty();
+			$('#sensor-search-tool').hide();
+			//hide upload-image form if shown
+			$('#new-sensor-section').hide();
+			$('sensor-name').val("");
+			$('sensor-location').val("");
+			$('sensor-serial').val("");
+			$('sensor-description').val("");
+			
+			/* hide image-view and comment section */
+			$('#sensor-section').hide();
+			$('#comment-results').empty();
+			$('#leave-comment').val("");
+
+		}
+		
+		/**
+		 * Invoked when a submit is done on the search field of the
+		 * Sensor Management Tool of the Portglass System. This will
+		 * remove current search container nodes from the result section,
+		 * does an asynchronous call to the search web service of Portglass,
+		 * and writes the results on the page.
+		 */
+		$('#sensor-search-form').submit(function(){
+
+			resetSensorPage();
+			$('#sensor-search-tool').show();
+
+			//append a search animation to alert the user 
+			//the query is being done.
+			$('#results > ul').append('<label id="load" class="load"  >'+
+					'<img src="../img/loader.gif"/> Searching for Sensors ...'+
+			'</label>');
+			//Fetch JSON information for the Search: filter refers to current 
+			//selected search filter.
+			var filter = $("input[name='searchRadio']:checked").val(); 
+			$.getJSON("../s/search",
+					{
+				filter: filter,
+				query : $('#search').val(),
+
+					})
+					.done(function(data)
+							{
+						var results = 0;
+						// for each JSON result, append a children container
+						// to the result section
+						$.each(data.sensors, function(i, sensors){
+							results ++;
+
+							children = $('#results > ul');
+
+							children.append(
+									'<li class="result-entry">'+
+									'<h5 class="toggle-title resultChild">Sensor Name: '+ sensors.name +
+									'<span class="toggle-title-detail resultChild">-'+
+									sensors.status+'</span>'+
+									'</h5>'+
+									'<div class="toggle grid-wrap">'+
+									'<ul class="grid col-one-third mq3-col-full">'+
+									
+									'<li class="sensor-name">Name: '+sensors.name+'</li>'+
+									'<li class="sensor-location">Owner: '+sensors.location+'</li>'+
+									'<li class="sensor-status">Created: '+sensors.status+'</li>'+
+									'<li class="sensor-serial" >Type: '+sensors.serial+'</li>'+
+									'<li class="sensor-datecreated" style="display: none">'+sensors.datecreated+'</li>'+
+
+									'</ul>'+
 
 
+									'<ul class="grid col-two-thirds mq3-col-full ">'+
+									'<li><a class="sensor-view">Go to Sensor</a></li>'+
+
+									'<li class="sensor-description">Description: '+sensors.description+'</li>'+
+									'</ul>'+
 
 
+							'</div></li>');	
 
+						});
+						//Remove load when results finish loading.
+						$('#load').remove();
+
+						//No Results, alert user.
+						if (results == 0){
+							if(filter==10){
+								$('#results > ul').append(
+										'<a> There are no sensors located in:  '+$('#search').val()+
+								'.</a>');	
+							}
+							else if(filter==11){
+
+								$('#results > ul').append(
+										'<a> There are no sensors with the name: '+$('#search').val()+
+								'.</a>');			
+							}
+							else if(filter==12){
+
+								$('#results > ul').append(
+										'<a> There are no sensors with the serial: '+$('#search').val()+
+								'.</a>');
+							}
+							else if(filter==13){
+
+								$('#results > ul').append(
+										'<a> There are no sensors with the status: '+$('#search').val()+
+								'.</a>');
+							}
+							else {
+
+								$('#results > ul').append(
+										'<a> Unexpected filter for the value: '+$('#search').val()+
+								'.</a>');
+							};
+
+						}
+
+
+							}).fail(function (){
+								// On fail still remove the loading element
+								$('#load').remove();
+								// Alert error. 
+								$('#results > ul').append(
+										'<a id="errorMessage" class="error">Service Unavailable.</a>'+
+								'<a> Please contact support at support.portglass@gmail.com </a>');
+
+							});	
+			// Make sure the submit does not reload page.
+			return false;
+		});
+		
+		
+		$('#do-new-sensor').click(function(){
+
+			resetSensorPage();
+			$('#new-sensor-section').show();
+
+		});
+
+		function eventHistoryReload(sensor){
+			
+			$('#comment-results').empty();
+			
+			$('#cresults').append('<label id="load" class="load"  >'+
+					'<img src="../img/loader.gif"/> Loading history ...'+
+			'</label>');
+			
+			$.getJSON("../s/search",
+					{
+				filter: '14',
+				query : sensor,
+
+					}, function(data){
+						
+							
+						var results = 0;
+						// for each JSON result, append a children container
+						// to the result section
+						$.each(data.smessages, function(i, smessages){
+							results ++;
+							
+							children = $('#cresults > ol');
+
+							children.append(
+									'<li class="comment">'+
+									'<h6>Event reported on sensor '+smessages.serial+'<span class="meta"> on '+smessages.reporteddate+'</span></h6>'+
+									'<p>Event Date: '+smessages.date +'</p>'+
+									'<p>Event Time: '+smessages.time +'</p>'+
+									'<p>Provided Details: '+smessages.details +'</p>'+
+							'</li>');	
+
+						});
+							})
+							.fail(function(){
+								$('#load').remove();
+							})
+							.always(function(){
+								
+								//Remove the loading sign
+								
+								$('#load').remove();
+								
+							});
+		
+		}
+		
+		$('#grid-section').on('click', '.sensor-view', function(){
+
+			var container = $(this).closest("div");
+
+			var nameLabel = container.find(".sensor-name").text().split(': ')[1];
+			var locationLabel = container.find(".sensor-location").text().split(': ')[1];
+			var statusLabel = container.find(".sensor-status").text().split(': ')[1];
+			var serialLabel = container.find(".sensor-serial").text().split(': ')[1];
+			var dateLabel = container.find(".sensor-datecreated").text().split(': ')[1];
+			var descriptionLabel = container.find(".sensor-description").text();
+
+			resetSensorPage();
+			/* prepare to load sensor-view and comments */
+			$('#sensor-section').show();
+
+			$('#sname').text(nameLabel);
+			$('#slocation').text(locationLabel);
+			$('#sstatus').text('Sensor Status: '+statusLabel);
+			$('#sserial').text(serialLabel);
+			$('#sdate').text(dateLabel);
+			$('#sdescription').text(descriptionLabel);
+
+			$('#comment-results').children().append('<label id="load" class="load"  >'+
+					'<img src="../img/loader.gif"/> Searching for comments ...'+
+			'</label>');
+
+			eventHistoryReload(serialLabel);
+			
+			$.post("../s/verify",
+					{
+				value: nameLabel,
+				filter: '2'
+					},
+					function(data,status)
+					{
+						if (data == 'true'){
+							$('#sfollow').prop('checked',true);
+						}
+					}
+			).fail(function(err, status)
+					{
+				// something went wrong, check err and status
+					}
+			);
+
+		});
+		
+		$('#sfollow').click(function(){
+			var filter;
+			
+			if($(this).is(":checked")){
+				filter = '10';
+			}
+			else{
+				filter = '9';
+			}
+			var value = $('#sname').text() +"";
+			
+			$.post("../s/update",
+					{
+				
+				filter: filter,
+				value: value
+					},
+					function(data,status)
+					{
+						
+					}
+			).fail(function(err, status)
+					{
+				// something went wrong, check err and status
+					}
+			);
+			
+		});
+		
+		$('#ifollow').click(function(){
+			var filter = '';
+			
+			if($(this).is(":checked")){
+				filter = '8';
+			}
+			else{
+				filter = '7';
+			}
+			var value = $('#iname').text();
+			$.post("../s/update",
+					{
+				value: value+"",
+				filter: filter
+					},
+					function(data,status)
+					{
+						
+					}
+			).fail(function(err, status)
+					{
+				// something went wrong, check err and status
+					}
+			);
+			
+		});
+		
+			
 
 
 //		TABS
@@ -978,6 +1295,10 @@ $(document).ready(function() {
 			if($(this).val()=='4'){$('#search').attr("placeholder","Search by type" );}
 			if($(this).val()=='6'){$('#search').attr("placeholder","Search by name" );}
 			if($(this).val()=='7'){$('#search').attr("placeholder","Search by owner" );}
+			if($(this).val()=='10'){$('#search').attr("placeholder","Search by location" );}
+			if($(this).val()=='11'){$('#search').attr("placeholder","Search by name" );}
+			if($(this).val()=='12'){$('#search').attr("placeholder","Search by serial" );}
+			if($(this).val()=='13'){$('#search').attr("placeholder","Search by status" );}
 
 
 
@@ -1510,11 +1831,11 @@ $(document).ready(function() {
 							.location.reload(true);
 							if ($.trim(data) == 'noimage'){
 								$('#load').remove();
-								alert('no image');
+								
 							}	
 							else if ($.trim(data) == 'false'){
 								// Reset all form Values
-								alert('failed');
+								
 								$('#load').remove();
 								$(this).find("#load").remove();
 							}	
@@ -1573,7 +1894,7 @@ $(document).ready(function() {
 							}
 							else{
 								$('#load').remove();
-								alert('server unavailable');
+								
 								$('#comment-results').show();
 							}
 						}
@@ -1587,6 +1908,72 @@ $(document).ready(function() {
 			},
 
 		});
+		
+		
+		$("#sensor_form").validate({
+			rules: {
+
+
+			},
+
+			messages: {
+				email: {
+					required: "This field is required",
+				}
+			},
+
+			submitHandler: function(form) {
+				/* show loader and hide form while adding */
+				$("#new-sensor-section").after('<label id="load" class="load"  >'+
+						'<img src="../img/loader.gif"/> Creating Sensor ...'+
+				'</label>');
+				
+				
+				
+				
+				
+				$('#new-sensor-section').hide();
+
+				$.post("./newsensor",
+						{
+					name: $('#name').val(),
+					location: $('#location').val(),
+					serial: $('#serial').val(),
+					status: $('#type_select').val(),
+					description:$('#leave-comment').val()
+						},
+						function(data,status)
+						{
+							$('#sensor-search-tool').show();
+							
+								
+							if ($.trim(data) == 'false'){
+								// Reset all form Values
+								$('#load').remove();
+								$(this).find("#load").remove();
+							}	
+							else {
+
+								$('#load').remove();
+								$(this).find("#load").remove();
+								// Hide form and return to search section
+								$('#results').show();
+
+							}
+
+
+						}
+				).fail(function(err, status)
+						{
+					// something went wrong, check err and status
+						}
+				);
+			},
+
+		});
+		
+		
+
 
 
 

@@ -37,6 +37,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * For this implementation, multi-uploads are limited to a single
  * file. To change this, go to <MultipartRequestHandler> and 
  * change the upload file size.
+ * 
+ * This resource is protected through the <AuthorizationManager>.
+ * Whenever the <AuthorizationFilter> detects that this resource is 
+ * accessed, the <HttpSession>'s user will be verified. Only <Account>
+ * users that have been added to the session may access this resource. 
  * @author Manuel Saldana
  *
  */
@@ -155,7 +160,7 @@ public class FileUploadServlet extends HttpServlet {
 
 
 
-		/* Upoload using the utility of Apache FileUpload API */
+		/* Upload using the utility of Apache FileUpload API */
 		files.addAll(MultipartRequestHandler.uploadByApacheFileUpload(request));
 
 		/*

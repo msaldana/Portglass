@@ -1,13 +1,11 @@
 package com.dhs.portglass.services;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
+import com.dhs.portglass.dto.SensorMessage;
 import com.dhs.portglass.dto.Sensor;
 import com.dhs.portglass.server.DBManager;
 
@@ -27,6 +25,13 @@ public class SensorManager {
 	 */
 	private static final String GET_AVAILABILITY = "SELECT count(serial) FROM Sensor " +
 			" WHERE serial =?";
+	
+	/*
+	 * Retrieves the count for email entries matching the provided 
+	 * email address on the 'sensor_follower' database table. 
+	 */
+	private static final String GET_FOLLOWER_STATUS = "SELECT count(user) FROM sensor_follower " +
+			" WHERE sensor = ? AND user = ?";
 
 	/* 
 	 * Retrieves a sensor entry from the 'Sensor' database table 
@@ -52,7 +57,20 @@ public class SensorManager {
 	 */
 	private static final String GET_SENSOR_BY_STATUS = "SELECT * FROM Sensor WHERE status = ? ";
 
-
+	/*
+	 * Retrieve all entries from the 'Sensor_Entry' database table whose 
+	 * 'sensor' column matches the provided value. These results will
+	 * be sorted by descending order of the <Date> 'timestamp' column.
+	 */
+	private static final String GET_SENSOR_ENTRIES = "SELECT * FROM sensor_entry WHERE sensor_id = ? " +
+			" ORDER BY timestamp DESC ";
+	
+	/*
+	 * Retrieves all 'user' column entries from the 'Sensor_Follower' 
+	 * database table whose 'sensor' column matches the given value.
+	 */
+	private static final String GET_SENSOR_FOLLOWERS = "SELECT user FROM sensor_follower WHERE " +
+			" sensor = ?";
 
 	/*****************************************************
 	 * Queries to create sensor data in the database
@@ -74,9 +92,24 @@ public class SensorManager {
 	private static final String ADD_SENSOR_EVENT = "INSERT INTO sensor_entry(sensor_id, " +
 			"details, timestamp, key, date, time) VALUES (?, ?, ?, ?, ?, ? )";
 	
+	/*
+	 * Creates a new entry in the 'sensor_follower' table initialized at 
+	 * every column with the provided values. This table indicates which
+	 * users will receive notification of changes in the particular sensor. 
+	 */
+	private static final String ADD_SENSOR_FOLLOWER = "INSERT INTO sensor_follower (sensor, " +
+			" user, timestamp ) VALUES ( ?, ?, ?)";
+	
 	/*****************************************************
 	 * Queries to update sensor data in the database
 	 ****************************************************/
+
+	/*
+	 * Updates the 'status' column of the Sensor table entry whose 'serial'
+	 * value matches the provided value.
+	 */
+	private static final String UPDATE_SENSOR_STATUS = "UPDATE sensor SET status = ? " +
+			" WHERE serial = ?";
 
 
 
@@ -91,6 +124,10 @@ public class SensorManager {
 	 */
 	private static final String DELETE_SENSOR_EVENT = "DELETE FROM sensor_entry where key " +
 			"= ?";
+	
+	
+	private static final String DELETE_SENSOR_FOLLOWER = "DELETE FROM sensor_follower where " +
+			"sensor = ? AND user = ?";
 	
 	/*****************************************************
 	 * Queries to do multiple operations on sensor data 
@@ -132,6 +169,56 @@ public class SensorManager {
 	 * INSERT METHODS
 	 *
 	 **************************************************************************/
+	
+	/**
+	 * Creates a new entry in the 'Sensor_Follower' database table. 
+	 * Fills each column of this table with the given parameters.
+	 * If the query is executed correctly, this method returns true; false
+	 * otherwise. 
+	 * @param sensor Refers to the 'serial' column of the 'Sensor' database
+	 * table. Used as a foreign key.
+	 * @param user Refers to the 'email' column of the 'Account' database
+	 * table. Used as a foreign key.
+	 * @param timestamp When the user became follower of the sensor.
+	 * @return A boolean indicating if the query was processed by the 
+	 * database.
+	 */
+	public boolean addSensorFollower(String sensor, String user, String timestamp) {		
+
+		ArrayList<Object> statements = new ArrayList<Object>();
+		statements.add(sensor);
+		statements.add(user);
+		statements.add(timestamp);
+
+		return DBManager.update(ADD_SENSOR_FOLLOWER, statements.toArray());
+	}
+	
+	
+	/**
+	 * Creates a new entry in the 'Sensor' database table. 
+	 * Fills each column of this table with the contents of the <Sensor> DTO.
+	 * If the query is executed correctly, this method returns true; false
+	 * otherwise. 
+	 * @param account The <Sensor> DTO that will be added to the 'Sensor' 
+	 * database table.
+	 * @return A boolean indicating if the query was processed by the 
+	 * database.
+	 */
+	public boolean addSensor(Sensor sensor) {		
+		
+		ArrayList<Object> statements = new ArrayList<Object>();
+		statements.add(sensor.getName());
+		statements.add(sensor.getLocation());
+		statements.add(sensor.getStatus());
+		statements.add(sensor.getDateCreated());
+		statements.add(sensor.getDescription());
+		statements.add(sensor.getSerial());
+		statements.add(true);
+		return DBManager.update(ADD_SENSOR, statements.toArray());
+	}
+	
+	
+	
 
 	/* *************************************************************************
 	 *
@@ -139,6 +226,23 @@ public class SensorManager {
 	 *
 	 **************************************************************************/
 
+	
+	/** Queries the 'Sensor' database table for all entries whose 'serial'
+	 * column matches the provided serial value. Then, it updates the 'status'
+	 * column with the 'status' parameter.
+	 * @param status A value to update the 'status' column of the entries that
+	 * match the 'serial' address provided
+	 * @param sensor Refers to the 'Sensor' table's primary key: 'serial' column
+	 * @return False if the query fails, true otherwise.
+	 */
+	public boolean updateSensorStatus(String status,String sensor){
+		ArrayList<Object> expressions = new ArrayList<Object>();
+		expressions.add(status);
+		expressions.add(sensor);
+		return (DBManager.update(UPDATE_SENSOR_STATUS, expressions.toArray()));
+	}
+	
+	
 
 	/* *************************************************************************
 	 *
@@ -164,6 +268,15 @@ public class SensorManager {
 		expressions.add(hashCode+"");
 		return DBManager.update(DELETE_SENSOR_EVENT, expressions.toArray());
 	}
+	
+	
+	public boolean deleteSensorFollower(String sensor, String email)
+	{
+		ArrayList<Object> expressions = new ArrayList<Object>();
+		expressions.add(sensor);
+		expressions.add(email);
+		return DBManager.update(DELETE_SENSOR_FOLLOWER, expressions.toArray());
+	}
 
 
 	/* *************************************************************************
@@ -171,6 +284,37 @@ public class SensorManager {
 	 * SELECT METHODS
 	 *
 	 **************************************************************************/
+	
+	/**
+	 * Queries the DB to count the amount of current entries with the 
+	 * provided email value. This method is preset to return false 
+	 * unless the database responds that no entry is found. If the count
+	 * is zero, then this email has not been used and is available to use
+	 * as a username (UNIQUE identifier).
+	 * @param email Corresponds to a value to be compared to the 'user'
+	 * column of the 'Sensor_Follower' database' table.
+	 * @return A boolean stating whether or not there is a matching entry in
+	 *  the 'Sensor_Follower' table.
+	 */
+	public boolean isFollowing(String sensor, String email)
+	{
+		boolean isAvailable = false;
+		ArrayList<Object> expressions = new ArrayList<Object>();
+		expressions.add(sensor);
+		expressions.add(email);
+		ResultSet rs = DBManager.execute(GET_FOLLOWER_STATUS, expressions.toArray());
+
+		try {
+			if(rs.next() && rs.isFirst() && rs.isLast())
+			{
+				if (rs.getInt(1)==0) isAvailable = true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return isAvailable;
+	}
 	
 	/**
 	 * Queries the 'Sensor' table of the database for the rows whose 'location'
@@ -280,6 +424,61 @@ public class SensorManager {
 		return list;		
 	}
 	
+	/**
+	 * Queries the 'Sensor_Follower' table of the database for the rows whose
+	 * 'sensor' column matches the value of the parameter. This query returns
+	 * only the 'user' column.
+	 * @param query String representation of an attribute to be compared with
+	 * the 'sensor' column of the database.
+	 * @return An array list of <String> of all user accounts following the 
+	 * sensor. 
+	 */
+	public ArrayList<String> getSensorFollowers(String sensor)
+	{
+		ArrayList<String> list = new ArrayList<String>();
+
+		list.add(sensor);
+		ResultSet rs = DBManager.execute(GET_SENSOR_FOLLOWERS, list.toArray());
+		list.clear();
+		try {
+			while (rs.next())
+			{							
+				list.add(rs.getString(1));
+			}
+		} catch (Exception e ) {
+			e.printStackTrace();
+		}
+
+		return list;		
+	}
+	
+	/**
+	 * Queries the 'Sensor_Entry' table of the database for the rows whose 'sensor'
+	 * column matches the value of the parameter. Results are ordered in accordance
+	 * to the 'timestamp' <Date> column of the 'Sensor_Entry' table.
+	 * @param query String representation of an attribute to be compared with
+	 * the 'sensor' column of the database.
+	 * @return An array list of <SensorMessages> masked by <Object>
+	 * filtered by 'sensor'. Empty if no entries are found or an error occurred.
+	 */
+	public ArrayList<Object> getSensorMessages(String query)
+	{
+		ArrayList<Object> list = new ArrayList<Object>();
+
+		list.add(query);
+		ResultSet rs = DBManager.execute(GET_SENSOR_ENTRIES, list.toArray());
+		list.clear();
+		try {
+			while (rs.next())
+			{							
+				list.add(createSensorMessageFromRS(rs));
+			}
+		} catch (Exception e ) {
+			e.printStackTrace();
+		}
+
+		return list;		
+	}
 
 	/* *************************************************************************
 	 *
@@ -313,9 +512,9 @@ public class SensorManager {
 	 *  date, time, and details. Status and Serial must not be empty | null.
 	 *  @param hashCode A hash of the sensor file's directory, used as an unique
 	 *  identifier for the 'Sensor_entry' database table's 'key' column.
-	 *  @param modifiedTime Timestamp of when the event was registered.
+	 *  @param timestamp Timestamp of when the event was registered.
 	 */
-	public void indexAddEvent(String[] eventData, int hashCode, long modifiedTime){
+	public void indexAddEvent(String[] eventData, int hashCode, String timestamp){
 		/*
 		 *  If the event data is null, there was a problem parsing
 		 *  the data from a sensor file in the server's monitored
@@ -352,13 +551,9 @@ public class SensorManager {
 			//Create sensor otherwise
 			else
 			{
-				//Current time
-				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-				Date date = new Date(System.currentTimeMillis());
-				String timestamp = dateFormat.format(date);
 				
-				sensor = new Sensor(eventData[0], eventData[1], eventData[2],
-						timestamp, "",eventData[3], false);
+				sensor = new Sensor(eventData[0].trim(), eventData[1].trim(), eventData[2].trim(),
+						timestamp, "",eventData[3].trim(), false);
 				expressions.add(sensor.getName());
 				expressions.add(sensor.getLocation());
 				expressions.add(sensor.getStatus());
@@ -375,17 +570,27 @@ public class SensorManager {
 			//Only register the 'sensor_entry' if Sensor exists.
 			if(isSensorCreated)
 			{
-				expressions.add(eventData[3]); // Sensor serial
-				expressions.add(eventData[6]); // Event details
-				expressions.add(modifiedTime); // When the file was added to server
+				expressions.add(eventData[3].trim()); // Sensor serial
+				expressions.add(eventData[6].trim()); // Event details
+				expressions.add(timestamp.trim()); // When the file was added to server
 				expressions.add(hashCode);     // Hash of file location in directory
-				expressions.add(eventData[4]); // Date of event
-				expressions.add(eventData[5]); // Time of event
+				expressions.add(eventData[4].trim()); // Date of event
+				expressions.add(eventData[5].trim()); // Time of event
 				if(DBManager.update(connection, ADD_SENSOR_EVENT, expressions.toArray()))
 				{
+					//End connection and get ready for sending notifications
+					//and emails.
+					connection.close();
 					System.out.println("Added Sensor event: "+ true);
-					//IMPLEMENT NOTIFICATION SENDER HERE
+					ThreadPoolManager.getInstance().getThreadPoolExecutor().execute(
+							NotificationManager.getInstance()
+							.sendAsyncSensorNotification(sensor.getSerial(), timestamp,
+								"Status: "+eventData[2]+ " Details: "+eventData[6]));
 				}
+				
+				//Update sensor status
+				SensorManager.getInstance().updateSensorStatus(eventData[2],
+						sensor.getSerial());
 			}
 
 		} 
@@ -403,6 +608,8 @@ public class SensorManager {
 
 	}
 
+
+	
 
 	/* *************************************************************************
 	 *
@@ -431,6 +638,29 @@ public class SensorManager {
 			e.printStackTrace();
 		}
 		return result;
+	}
+	
+	/**
+	 * Utility method to add the result set columns to an <SensorMessage> object
+	 * in the respective instance fields.
+	 * @param rs The result set returned from the data base query
+	 * @throws Exception  Occurs when an incorrect index is selected and does not 
+	 * match the <SensorMessage> object types.
+	 * @return An <SensorMessage> object with the information of the DB, null if
+	 * an exception occurs.
+	 */
+	private SensorMessage createSensorMessageFromRS(ResultSet rs) {
+		SensorMessage result = null;
+		try {
+			result = new SensorMessage(rs.getString(1), rs.getString(2),
+					rs.getString(3), rs.getString(4), rs.getString(5), 
+					rs.getString(6));
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+
 	}
 
 

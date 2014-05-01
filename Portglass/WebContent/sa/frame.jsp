@@ -26,7 +26,7 @@
 	
 <div style="width:500px height: 300px;padding:20px;S">
 
-	<input id="fileupload" type="file" name="files[]" data-url="../upload"  required>
+	<input id="fileupload" type="file" name="files[]" data-url="../s/upload"  required>
 	
 	<div id="dropzone" class="fade well">Drop files here</div>
 	

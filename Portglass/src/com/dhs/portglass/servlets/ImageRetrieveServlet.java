@@ -28,6 +28,11 @@ import javax.servlet.http.HttpServletResponse;
  * to the client-side through the <HttpServletResponse> 
  * <OutputStream> writer. All data is sent in a bitwise array,
  * formated with PNG context type.
+ * 
+ * This resource is protected through the <AuthorizationManager>.
+ * Whenever the <AuthorizationFilter> detects that this resource is 
+ * accessed, the <HttpSession>'s user will be verified. Only <Account>
+ * users that have been added to the session may access this resource. 
  * @author Manuel R Saldana 
  *
  */
@@ -35,9 +40,12 @@ public class ImageRetrieveServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	/* Location of Image Directories */
-	private static final String IMAGE_ORIGINAL = "/Users/Manuel/git/Portglass/Portglass/WebContent/WEB-INF/data/images/original/";
-	private static final String IMAGE_STANDARD = "/Users/Manuel/git/Portglass/Portglass/WebContent/WEB-INF/data/images/standard/";
-	private static final String IMAGE_THUMBNAIL = "/Users/Manuel/git/Portglass/Portglass/WebContent/WEB-INF/data/images/thumbnail/";
+	private static final String IMAGE_ORIGINAL = "/Users/Manuel/git/Portglass/Portglass/" +
+			"WebContent/WEB-INF/data/images/original/";
+	private static final String IMAGE_STANDARD = "/Users/Manuel/git/Portglass/Portglass/" +
+			"WebContent/WEB-INF/data/images/standard/";
+	private static final String IMAGE_THUMBNAIL = "/Users/Manuel/git/Portglass/Portglass/" +
+			"WebContent/WEB-INF/data/images/thumbnail/";
 
 	
 	/**

@@ -1,0 +1,7 @@
+sensor.name=CID SENSOR 1
+sensor.status=Idle
+sensor.serial=QWE23Y67
+sensor.location=RUM@Mayaguez
+sensor.details=Motion Triggered Response with unknown source
+sensor.date=1/1/2014
+sensor.time=13:21

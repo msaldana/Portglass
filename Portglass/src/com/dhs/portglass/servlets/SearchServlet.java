@@ -15,6 +15,7 @@ import com.dhs.portglass.dto.Account;
 import com.dhs.portglass.dto.Image;
 import com.dhs.portglass.dto.ImageMessage;
 import com.dhs.portglass.dto.Sensor;
+import com.dhs.portglass.dto.SensorMessage;
 import com.dhs.portglass.services.AccountManager;
 import com.dhs.portglass.services.ImageManager;
 import com.dhs.portglass.services.SensorManager;
@@ -55,13 +56,14 @@ public class SearchServlet extends HttpServlet {
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+			throws ServletException, IOException {
 		// TODO Auto-generated method stub
 
 		ArrayList<Object> list = new ArrayList<Object>();
 		int filter; 
 		String query;
-		String type = (String) request.getSession().getAttribute("type");
+		String type = ((Account) request.getSession().getAttribute("user")).getType();
 		String user = ((Account) request.getSession().getAttribute("user")).getEmail();
 		
 
@@ -108,6 +110,7 @@ public class SearchServlet extends HttpServlet {
 		break;
 		case 13: list = SensorManager.getInstance().getSensorsByStatus(query);
 		break;
+		case 14: list = SensorManager.getInstance().getSensorMessages(query);
 		default:  break;
 		}
 
@@ -171,24 +174,38 @@ public class SearchServlet extends HttpServlet {
 				for (int i=0 ; i<list.size() ; i++)
 				{
 					/* Seperate Date Created by Date / Time */
-					String[] timestamp = ((Image) list.get(i)).getDateCreated().split(" ");
+					String[] timestamp = ((Sensor) list.get(i)).getDateCreated().split(" ");
 					
 					jsonObjectList = new JSONObject();
 					jsonObjectList.put("name"     , ((Sensor) list.get(i)).getName());
 					jsonObjectList.put("location" , ((Sensor) list.get(i)).getLocation());
-					jsonObjectList.put("status"    , ((Sensor) list.get(i)).getDescription());
-					jsonObjectList.put("description"     , ((Sensor) list.get(i)).getDateCreated());
+					jsonObjectList.put("status"    , ((Sensor) list.get(i)).getStatus());
+					jsonObjectList.put("description"     , ((Sensor) list.get(i)).getDescription());
 					jsonObjectList.put("datecreated"    , timestamp[0]);
-					jsonObjectList.put("serial", timestamp[1]);
+					jsonObjectList.put("serial", ((Sensor) list.get(i)).getSerial());
 					
 					items.put(jsonObjectList);
 				}
-				json.put("images", items);
+				json.put("sensors", items);
 			}
 			
-			
-			
-			
+			if (filter==14){
+				for (int i=0 ; i<list.size() ; i++)
+				{
+					
+					jsonObjectList = new JSONObject();
+					jsonObjectList.put("serial"     , ((SensorMessage) list.get(i)).getSensor());
+					jsonObjectList.put("reporteddate" , ((SensorMessage) list.get(i)).getReportedDate());
+					jsonObjectList.put("date"     , ((SensorMessage) list.get(i)).getEventDate());
+					jsonObjectList.put("time" , ((SensorMessage) list.get(i)).getEventTime());
+					jsonObjectList.put("details"     , ((SensorMessage) list.get(i)).getDetails());
+					
+					items.put(jsonObjectList);
+				}
+				json.put("smessages", items);
+			}
+				
+						
 		}
 		catch (Exception ex) {
 
@@ -196,6 +213,7 @@ public class SearchServlet extends HttpServlet {
 		System.out.println("Leaving Servlet");
 		response.setContentType("application/json");
 		response.getWriter().write(json.toString());
+		response.getWriter().close();
 
 	}
 

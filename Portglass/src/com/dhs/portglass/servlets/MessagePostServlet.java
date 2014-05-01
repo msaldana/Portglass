@@ -17,6 +17,21 @@ import com.dhs.portglass.services.ImageManager;
 
 
 @WebServlet("/s/post")
+/**
+ * Used to record a post that a user has done on any image presented
+ * through the Portglass System. It invokes the <ImageManager> to
+ * add the entry to the 'Image_Entry' database table. Upon success,
+ * email and application notifications are created for all followers 
+ * of the image. "Followers" are defined in the 'Image_Follower' 
+ * database table. 
+ * 
+ * This resource is protected through the <AuthorizationManager>.
+ * Whenever the <AuthorizationFilter> detects that this resource is 
+ * accessed, the <HttpSession>'s user will be verified. Only <Account>
+ * users that have been added to the session may access this resource. 
+ * @author Manuel
+ *
+ */
 public class MessagePostServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -61,7 +76,7 @@ public class MessagePostServlet extends HttpServlet {
 		if(ImageManager.getInstance().addImageMessage(message))
 		{
 
-			//Send Email to All Administrators Asynchronously
+			//Send Email and Notification to All Followers Asynchronously
 
 
 			//Response Message True

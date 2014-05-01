@@ -11,6 +11,14 @@ import com.dhs.portglass.services.AccountManager;
 
 /**
  * Servlet implementation class availability
+ * Searches the 'Account' database table to verify if an entry
+ * has been made whose 'email' column matches the <HttpServletRequest>
+ * "email" parameter provided. The <HttpServletResponse> is provided
+ * with a response message recording a boolean 'true' if the email is
+ * available; 'false' otherwise. No doGet() method is provided, as 
+ * this servlet call is meant to be done asynchronously through 
+ * the client-side registration forms of the Portglass System.
+ * @author Manuel R Saldana
  */
 @WebServlet("/availability")
 public class CheckAvailabilityServlet extends HttpServlet {
@@ -26,13 +34,15 @@ public class CheckAvailabilityServlet extends HttpServlet {
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 * Verifies the availability of the chosen "email" address. Writes the availability
+	 * outcome on the <HttpServletResponse> so that the client is allowed or prohibited
+	 * to chose the selected "email". Parameter is not verified for <NullPointerException>
+	 * as it assumed that this class will always be invoked through the Portglass system.
 	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+			throws ServletException, IOException {
 		
-		if(nullChecker(request.getParameter("email")))
-		{
-			//Did not retrieve email from client.
-		}
+		
 		boolean isAvailable = AccountManager.getInstance().
 				isAvailable(request.getParameter("email"));
 		// Set content type of the response so that jQuery knows what it can expect.
@@ -41,19 +51,6 @@ public class CheckAvailabilityServlet extends HttpServlet {
 		// Write response body.
 			response.getWriter().write(isAvailable+"");
 			
-	}
-
-	/**
-	 * Verifies if the ID parameter is not defined. It returns a boolean which will be
-	 * picked up on the doPost(request, response) method and forwarded to the error 
-	 * page if true.
-	 * @param requestParam An URL parameter
-	 * @return Contents of the parameter
-	 */
-	private static boolean nullChecker(Object requestParam)
-	{
-		return (requestParam.equals(null));
-
 	}
 
 }

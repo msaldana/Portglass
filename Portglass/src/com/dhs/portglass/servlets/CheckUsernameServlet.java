@@ -10,7 +10,15 @@ import javax.servlet.http.HttpServletResponse;
 import com.dhs.portglass.services.AccountManager;
 
 /**
- * Servlet implementation class account validation
+ * Servlet implementation class validateAccount
+ * Searches the 'Account' database table to verify if an entry
+ * has been made whose 'email' column matches the <HttpServletRequest>
+ * "email" parameter provided. The <HttpServletResponse> is provided
+ * with a response message recording a boolean 'true' if the email 
+ * exists; 'false' otherwise. No doGet() method is provided, as 
+ * this servlet call is meant to be done asynchronously through 
+ * the client-side password recovery form.
+ * @author Manuel R Saldana
  */
 @WebServlet("/validateAccount")
 public class CheckUsernameServlet extends HttpServlet {
@@ -26,13 +34,14 @@ public class CheckUsernameServlet extends HttpServlet {
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 * Verifies the existence of the chosen "email" address. Writes the existence
+	 * outcome on the <HttpServletResponse> so that the client is allowed or prohibited
+	 * to chose the selected "email". Parameter is not verified for <NullPointerException>
+	 * as it assumed that this class will always be invoked through the Porglass system.
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		if(nullChecker(request.getParameter("email")))
-		{
-			//Did not retrieve email from client.
-		}
+		
 		// Negate the result as to return true if username exists, false otherwise.
 		boolean isAvailable = !AccountManager.getInstance().
 				isAvailable(request.getParameter("email"));
@@ -42,19 +51,6 @@ public class CheckUsernameServlet extends HttpServlet {
 		// Write response body.
 			response.getWriter().write(isAvailable+"");
 			
-	}
-
-	/**
-	 * Verifies if the ID parameter is not defined. It returns a boolean which will be
-	 * picked up on the doPost(request, response) method and forwarded to the error 
-	 * page if true.
-	 * @param requestParam An URL parameter
-	 * @return Contents of the parameter
-	 */
-	private static boolean nullChecker(Object requestParam)
-	{
-		return (requestParam.equals(null));
-
 	}
 
 }

@@ -1,0 +1,7 @@
+sensor.name=CID SENSOR 1
+sensor.status=Alert
+sensor.serial=QWE23Y67
+sensor.location=RUM@Mayaguez
+sensor.details=Unknown Anomaly Detected
+sensor.date=2/2/2014
+sensor.time=15:21

@@ -12,7 +12,9 @@ import com.dhs.portglass.server.DBManager;
 /**
  * Manages logic for creating, updating, and/or deleting entries 
  * in the Account Database Table. It is a synchronized singleton
- * class, accessible through the getInstance() method.
+ * class, accessible through the getInstance() method. Data is
+ * transfered to and through this class in the form of <Account>
+ * POJOs.
  * @author Manuel R Saldana
  *
  */

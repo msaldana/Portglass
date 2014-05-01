@@ -16,10 +16,10 @@
 
 <meta name="viewport" content="width=device-width">
 
-<meta name="description" content="Portglass Manage Images View">
+<meta name="description" content="Portglass Manage Sensors View">
 <meta name="author" content="Manuel R Saldana">
 
-<title>Portglass: Manage Images</title>
+<title>Portglass: Manage Sensors</title>
 
 <link rel="shortcut icon" type="image/x-icon" href="../img/favicon.ico">
 
@@ -60,10 +60,10 @@
 					<li><a href="./accounts.jsp">Accounts</a></li>
 				</ul>
 				<ul>
-					<li><a href="./images.jsp" class="navactive">Images</a></li>
+					<li><a href="./images.jsp" >Images</a></li>
 				</ul>
 				<ul>
-					<li><a href="./sensors.jsp">Sensors</a></li>
+					<li><a href="./sensors.jsp" class="navactive">Sensors</a></li>
 				</ul>
 
 				<ul>
@@ -80,17 +80,17 @@
 
 			<header class="grid col-full">
 				<hr>
-				<p class="fleft">Search Images</p>
+				<p class="fleft">Search Sensors</p>
 			</header>
 
 
 			<aside class="grid col-one-quarter mq2-col-full">
-				<p class="mbottom">Use this tool to search for any image using
-					one of the filters provided. All images that result from this
-					search, can be viewed. Press the Upload option below, to add new
-					Images to the system.</p>
+				<p class="mbottom">Use this tool to search for any sensor using
+					one of the filters provided. All Sensors that result from this
+					search, can be edited. Press the Add New Sensor option below, to add new
+					Sensor to the system.</p>
 
-				<form id="image-search-form">
+				<form id="sensor-search-form">
 					<ul>
 						<li><input type="search" name="search" id="search"
 							placeholder="Search by Name"></li>
@@ -98,19 +98,20 @@
 				</form>
 				<menu id="radio-container">
 					<ul>
-						<li><input type="radio" checked name="searchRadio" value="6">Search
+						<li><input type="radio" name="searchRadio" value="10">Search
+							by Location</li>
+						<li><input type="radio" checked name="searchRadio" value="11">Search
 							by Name</li>
-						<li><input type="radio" name="searchRadio" value="5">Search
-							by Owner</li>
-						<li><input type="radio" name="searchRadio" value="7">Search
-							by Type</li>
+						<li><input type="radio" name="searchRadio" value="12">Search
+							by Serial</li>
+							<li><input type="radio" name="searchRadio" value="13">Search
+							by Status</li>
 					</ul>
 				</menu>
 
 				<p class="mbottom">
 				<ul>
-					<li><a id="do-my-images">My Images</a></li>
-					<li class="mtopless"><a id="do-image-upload">Upload Image</a></li>
+					<li class="mtopless"><a id="do-new-sensor">New Sensor</a></li>
 				</ul>
 				</p>
 
@@ -119,9 +120,9 @@
 			<section class="grid col-three-quarters mq2-col-full">
 
 				<div id="grid-section" class="grid-wrap">
-					<section id="image-search-tool">
+					<section id="sensor-search-tool">
 						<article id="results" class="grid col-full">
-							<h2 id="toolTitle">Image Management</h2>
+							<h2 id="toolTitle">Sensor Management</h2>
 							<ul id="results-section" class="toggle-view">
 
 
@@ -130,88 +131,73 @@
 						</article>
 					</section>
 
-					<section id="owner-section" style='display: none'
+			
+					<section id="new-sensor-section" style='display: none'
 						class="grid col-three-quarters mq2-col-two-thirds mq3-col-full">
-							<h2 id="toolTitle">My Images</h2>
-								<ul id="myimages-section" class="toggle-view">
-
-
-
-								</ul>
-					</section>
-
-					<section id="upload-section" style='display: none'
-						class="grid col-three-quarters mq2-col-two-thirds mq3-col-full">
-						<h2>New Image Form</h2>
+						<h2>New Sensor Form</h2>
 						
 							<p class="warning">Please fill in all fields</p>
-							<form id="file_upload_form" enctype="multipart/form-data">
+							<form id="sensor_form">
 								<ul>
-									<li><iframe id="frame-section" src="frame.jsp"></iframe></li>
-									<li><label for="image-name">Name:</label> <input
-										type="text" name="image-name" id="image-name" required></li>
-									<li><label for="type-select">Select Type:</label> <select
-										name="type-select" id="type-select">
-											<option value=hyperspectral>Hyperspectral</option>
-											<option value=infrared>Infrared</option>
-											<option value=rgb>RGB</option>
-									</select></li>
-									<li>
-										<label for="image-description">Description:</label> 
-										<textarea name="image-description" id="image-description" cols="100"
-												rows="6">
-										</textarea></li>
-
-									<li>
-										<button id="upload_button" class="upload_button button fright">Upload!</button>
+									<li ><label for="name">Sensor Name:</label> <input type="text"
+										name="name" id="name" required class="required"></li>
+									<li><label for="location">Location:</label> <input
+										type="text" name="location" id="location" required
+										class="required"></li>
+									<li><label for="serial">Serial:</label> <input type="text"
+										name="serial" id="serial"  class="required">
+										 	 
 									</li>
+									
+									<li><label for="type">Select Type:</label> <select
+										name="type_select" id="type_select">
+										<option  value="online">Online</option>
+										<option  value="offline">Offline</option>
+										<option  value="idle">Idle</option>
+										<option  value="emergency">Emergency</option>
+									</select></li>
+						
+						
+								<li>
+									<label for="leave-comment">Description:</label>
+									<textarea id="leave-comment" cols="100" rows="6" required maxlength="300"  class="required" ></textarea>
+								</li>
+					
+						<li>
+							<button id="submit" name="submit" class="button fright">Create!</button>
+						</li>
 								</ul>
 							</form>
 						
 					</section>
 					
 					
-					<section id="comment-section" style='display: none'
+					<section id="sensor-section" style='display: none'
 						class="grid col-three-quarters mq2-col-two-thirds mq3-col-full"> 
 						<div class="grid-wrap">
 							<article class="post post-single">
-								<h2><a  id="iname" class="post-title"></a></h2>
+								<h2><a  id="sname" class="post-title"></a></h2>
 								<div class="meta">
-									<p>Created on <span id="idate" class="time"></span> by <a  id= "icreator" class="fn"></a>.</p>
-									<p>Type: <span id="itype" ></span></p>
+									<p>Created on <span id="sdate" class="time"></span> @ <a  id= "slocation" class="fn"></a>.</p>
+									<p>Serial: <span id="sserial" ></span></p>
 								</div>
 								<div class="entry">
-									<p> <img id="iimage" class="standard aligncenter" ></p>
-									<p id="idescription"></p>
-									<P> Followed: <input type="checkbox" id="ifollow"></p>
+									<p id="sstatus"  ></p>
+									<p id="sdescription"></p>
+									<P> Followed: <input type="checkbox" id="sfollow"></p>
 								</div>
-								
 							</article>
 							
 							<section id="cresults" class="section-comment">
 								<header>
 									<hr>
-									<h5 class="fleft">Comments</h5> <p class="fright"><a href="#leave-comment" class="arrow">Leave your comment</a></p>
+									<h5 class="fleft">Sensor History</h5> <p class="fright"></p>
 								</header>
 								<ol id="comment-results" class="comments">
 								</ol>
 					
 							</section>
 					
-							<div class="leavecomment" id="leavecomment">
-								<h3>Leave your comment</h3>
-									<form id="comment-form">
-										<ul>											
-											<li>
-												<label for="leave-comment">Message:</label>
-												<textarea id="leave-comment" cols="100" rows="6" required maxlength="300"  class="required" ></textarea>
-											</li>
-											<li>
-												<button type="submit" id="submit" class="button fright">Send it</button>
-											</li>	
-										</ul>			
-									</form>
-							</div>
 						</div>
 					</section>
 
